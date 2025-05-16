@@ -8,16 +8,17 @@ import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(of = {"id"})
-public class Film {
+public class User {
     private Integer id;
     @NotNull
     @NotBlank
+    @Pattern(regexp = "^\\S*$", message = "логин не должен содержать пробелы")
+    private String login;
     private String name;
-    @Size(max = 200)
-    private String description;
     @NotNull
+    @NotBlank
+    @Email
+    private String email;
     @PastOrPresent
-    private LocalDate releaseDate;
-    @Positive
-    private int duration;
+    private LocalDate birthday;
 }
