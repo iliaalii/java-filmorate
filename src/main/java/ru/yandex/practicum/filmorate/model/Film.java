@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @EqualsAndHashCode(of = {"id"})
 public class Film {
     private Integer id;
-    @NotNull
     @NotBlank
     private String name;
     @Size(max = 200)
