@@ -32,9 +32,6 @@ public class FilmService {
     }
 
     public Collection<Film> getPopularFilms(Integer count) {
-        if (count <= 0) {
-            count = 10;
-        }
         return List.copyOf(filmStorage.findAll().stream()
                 .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
                 .limit(count)
