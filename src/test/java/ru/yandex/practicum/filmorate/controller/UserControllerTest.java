@@ -74,7 +74,7 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.now());
 
         ResponseEntity<User> response = restTemplate.postForEntity("/users", user, User.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("newUser", response.getBody().getName());
     }
 
