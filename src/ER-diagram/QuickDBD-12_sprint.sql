@@ -6,10 +6,10 @@
 CREATE TABLE `Films` (
     `film_id` int  NOT NULL ,
     `name` text  NOT NULL ,
-    `description` varchar(200)  NOT NULL ,
+    `description` varchar(200)  NULL ,
     `releaseDate` date  NOT NULL ,
     `duration` int  NOT NULL ,
-    `rating_id` int  NOT NULL ,
+    `rating_id` int  NULL ,
     PRIMARY KEY (
         `film_id`
     )
@@ -18,7 +18,7 @@ CREATE TABLE `Films` (
 CREATE TABLE `Users` (
     `user_id` int  NOT NULL ,
     `login` text  NOT NULL ,
-    `name` text  NOT NULL ,
+    `name` text  NULL ,
     `email` varchar(256)  NOT NULL ,
     `birthday` date  NOT NULL ,
     PRIMARY KEY (
