@@ -4,7 +4,7 @@
 ![изображение](src/ER-diagram/QuickDBD-12_sprint.png)
 
 * [Ссылка](https://app.quickdatabasediagrams.com/#/d/i89NpA) на диограмму.
-* [Скрипт](src/ER-diagram/QuickDBD-12_sprint.sql) базы данных в MySQL формате.
+* [Скрипт](src/ER-diagram/QuickDBD-12_sprint.sql) базы данных в SQL (метот генерации ключа взят из PostgreSQL).
 
 ## Примеры запросов к контроллерам с выгрузкой данных
 <sup>С учетом пройденого материала</sup>
@@ -13,11 +13,11 @@
   * вывод всех фильмов
     ```SQL
     SELECT f.film_id,
-           f.`name`,
+           f.name,
            f.description,
-           f.releaseDate,
+           f.release_date,
            f.duration,
-           r.`name` AS rating
+           r.name AS rating
     FROM Films f
     LEFT JOIN Rating AS r ON f.rating_id = r.rating_id
     ```
@@ -25,41 +25,41 @@
   * вывод конкретного фильма `id`
     ```SQL
     SELECT f.film_id,
-           f.`name`,
+           f.name,
            f.description,
-           f.releaseDate,
+           f.release_date,
            f.duration,
-           r.`name` AS rating
+           r.name AS rating
     FROM Films f
     LEFT JOIN Rating AS r ON f.rating_id = r.rating_id
     WHERE f.film_id = /*id*/;
     ```
-  * получение фильмов с их жанром
+  * получение фильмов с их жанром (в одну строку)
     ```SQL
     SELECT f.film_id,
-           f.`name`,
-           g.`name` AS genre
+           f.name,
+           string_agg(g.name, ', ') AS genres
     FROM Films f
-    LEFT JOIN Film_Genre AS fg ON f.film_id = fg.film_id
-    LEFT JOIN Genre AS g ON fg.genre_id = g.genre_id
+    LEFT JOIN Films_Genres AS fg ON f.film_id = fg.film_id
+    LEFT JOIN Genres AS g ON fg.genre_id = g.genre_id
     GROUP BY f.film_id,
-             f.`name`,
-             g.`name`;
+             f.name;
     ```
     
-  * получение `count` популярных фильмов
+  * получение `count` популярных фильмов (без учета не оцененных фильмов)
     ```SQL
     SELECT f.film_id,
-           f.`name`,
+           f.name,
            f.description,
-           f.releaseDate,
+           f.release_date,
            f.duration,
-           r.`name` AS rating,
+           r.name AS rating,
            COUNT(l.user_id) AS likes_count
     FROM Films f
     LEFT JOIN Rating AS r ON f.rating_id = r.rating_id
     LEFT JOIN Likes AS l ON f.film_id = l.film_id
-    GROUP BY f.film_id, f.name, f.description, f.releaseDate, f.duration, r.name
+    GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, r.name
+    HAVING COUNT(l.user_id) > 0
     ORDER BY likes_count DESC
     LIMIT /*count*/;
     ```
@@ -69,7 +69,7 @@
   ```SQL
   SELECT u.user_id,
          u.login,
-         u.`name`,
+         u.name,
          u.email,
          u.birthday
   FROM Users u;
@@ -79,7 +79,7 @@
   ```SQL
   SELECT u.user_id,
          u.login,
-         u.`name`,
+         u.name,
          u.email,
          u.birthday
   FROM Friends f
@@ -92,7 +92,7 @@
   ```SQL
   SELECT u.user_id,
          u.login,
-         u.`name`,
+         u.name,
          u.email,
          u.birthday
   FROM Friends f1
