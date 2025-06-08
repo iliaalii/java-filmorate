@@ -1,6 +1,6 @@
 # java-filmorate (12 Sprint)
 
-## Диограммв для p2p проверки
+## Диаграмма для p2p проверки
 ![изображение](ER-diagram/QuickDBD-12_sprint.png)
 
 * [Ссылка](https://app.quickdatabasediagrams.com/#/d/i89NpA) на диограмму.
@@ -38,10 +38,15 @@
   ```SQL
   SELECT f.film_id,
          f.name,
+         f.description,
+         f.release_date,
+         f.duration,
+         r.name AS rating,
          string_agg(g.name, ', ') AS genres
   FROM Films f
   LEFT JOIN Films_Genres AS fg ON f.film_id = fg.film_id
   LEFT JOIN Genres AS g ON fg.genre_id = g.genre_id
+  LEFT JOIN Rating AS r ON f.rating_id = r.rating_id
   GROUP BY f.film_id,
            f.name;
   ```
@@ -109,5 +114,6 @@
   SELECT f.confirmed
   FROM Friends f
   WHERE f.user_id = /*id*/
-  AND f.friend_id = /*friendId*/;
+  AND f.friend_id = /*friendId*/
+  AND f.confirmed = true;
   ```
