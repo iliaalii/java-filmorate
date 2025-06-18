@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 
@@ -18,30 +17,29 @@ import java.util.Collection;
 @Validated
 public class UserController {
     private final UserService service;
-    private final UserStorage storage;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAll() {
-        return storage.findAll();
+        return service.findAll();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public User findUser(@PathVariable @Positive int id) {
-        return storage.findUser(id);
+        return service.findUser(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@Valid @RequestBody User user) {
-        return storage.create(user);
+        return service.create(user);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public User update(@Valid @RequestBody User newUser) {
-        return storage.update(newUser);
+        return service.update(newUser);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
