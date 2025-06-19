@@ -12,4 +12,8 @@ public interface FilmStorage {
     Film create(Film film);
 
     Film update(Film newFilm);
+
+    void addLike(int id, int userId);
+
+    void removeLike(int id, int userId);
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.yandex.practicum.filmorate.exception.DataConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
@@ -54,6 +55,16 @@ public class ErrorHandler {
                 .orElse("Нарушение ограничений валидации");
         log.warn("Ошибка валидации параметров: {}", errorMessage);
         return new ErrorResponse("Ошибка валидации параметров", errorMessage);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleDataConflict(final DataConflictException e) {
+        log.warn("Ошибка работы с базой данных: {}", e.getMessage());
+        return new ErrorResponse(
+                "Ошибка работы с базой данных.",
+                e.getMessage()
+        );
     }
 
     @ExceptionHandler

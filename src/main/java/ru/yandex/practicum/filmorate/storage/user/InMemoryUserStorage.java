@@ -1,14 +1,17 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
+@Qualifier("inMemoryUserStorage")
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
@@ -53,5 +56,40 @@ public class InMemoryUserStorage implements UserStorage {
             return oldUser;
         }
         throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
+    }
+
+    @Override
+    public void addFriend(int id, int friendId) {
+        if (findUser(friendId) != null) {
+            findUser(id).getFriends().add(friendId);
+            findUser(friendId).getFriends().add(id);
+        }
+    }
+
+    @Override
+    public void removeFriend(int id, int friendId) {
+        if (findUser(friendId) != null) {
+            findUser(id).getFriends().remove(friendId);
+            findUser(friendId).getFriends().remove(id);
+        }
+    }
+
+    @Override
+    public Collection<User> findFriends(int id) {
+        return List.copyOf(findUser(id).getFriends().stream()
+                .map(this::findUser)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Collection<User> findCommonFriends(int id, int otherId) {
+        HashSet<Integer> commonId = new HashSet<>(findUser(id).getFriends());
+        commonId.retainAll(findUser(otherId).getFriends());
+
+        return List.copyOf(commonId.stream()
+                .map(this::findUser)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
     }
 }
