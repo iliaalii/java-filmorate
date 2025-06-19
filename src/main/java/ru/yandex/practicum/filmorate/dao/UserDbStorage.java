@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.exception.DataConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -61,19 +63,23 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User create(User user) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        try {
+            jdbc.update(con -> {
+                log.info("Добавляем нового пользователя");
+                PreparedStatement ps = con.prepareStatement(CREATE_QUERY, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, user.getLogin());
+                if (user.getName() == null || user.getName().isBlank()) {
+                    user.setName(user.getLogin());
+                }
+                ps.setString(2, user.getName());
+                ps.setString(3, user.getEmail());
+                ps.setDate(4, Date.valueOf(user.getBirthday()));
+                return ps;
+            }, keyHolder);
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Ошибка валидации при сохранении в БД");
+        }
 
-        jdbc.update(con -> {
-            log.info("Добавляем нового пользователя");
-            PreparedStatement ps = con.prepareStatement(CREATE_QUERY, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, user.getLogin());
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-            }
-            ps.setString(2, user.getName());
-            ps.setString(3, user.getEmail());
-            ps.setDate(4, Date.valueOf(user.getBirthday()));
-            return ps;
-        }, keyHolder);
 
         Integer id = keyHolder.getKeyAs(Integer.class);
         if (id != null) {
@@ -89,16 +95,20 @@ public class UserDbStorage implements UserStorage {
     public User update(User newUser) {
         log.info("Обновляем пользователя");
         findUser(newUser.getId());
-        int rowsUpdated = jdbc.update(UPDATE_QUERY,
-                newUser.getLogin(),
-                newUser.getName(),
-                newUser.getEmail(),
-                Date.valueOf(newUser.getBirthday()),
-                newUser.getId());
-        if (rowsUpdated == 0) {
-            throw new DataConflictException("Не удалось обновить данные");
+        try {
+            int rowsUpdated = jdbc.update(UPDATE_QUERY,
+                    newUser.getLogin(),
+                    newUser.getName(),
+                    newUser.getEmail(),
+                    Date.valueOf(newUser.getBirthday()),
+                    newUser.getId());
+            if (rowsUpdated == 0) {
+                throw new DataConflictException("Не удалось обновить данные");
+            }
+            return findUser(newUser.getId());
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Ошибка валидации при сохранении в БД");
         }
-        return findUser(newUser.getId());
     }
 
     @Override

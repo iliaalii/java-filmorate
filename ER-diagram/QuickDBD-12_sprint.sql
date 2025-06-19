@@ -1,26 +1,17 @@
--- Упрощенный вариант. создан исключительно для удобного комментирования ревью :)
-CREATE TABLE Rating (
+CREATE TABLE IF NOT EXISTS Rating (
   rating_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name TEXT NOT NULL
+  name VARCHAR(20) NOT NULL
 );
 
-CREATE TABLE Genres (
+CREATE TABLE IF NOT EXISTS Genres (
   genre_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name TEXT NOT NULL
+  name VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE Films_Genres (
-  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  film_id INTEGER NOT NULL,
-  genre_id INTEGER NOT NULL,
-  FOREIGN KEY (film_id) REFERENCES Films(film_id),
-  FOREIGN KEY (genre_id) REFERENCES Genres(genre_id)
-);
-
-CREATE TABLE Films (
+CREATE TABLE IF NOT EXISTS Films (
   film_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name TEXT NOT NULL,
-  description VARCHAR(200) NOT NULL,
+  name VARCHAR(120) NOT NULL,
+  description VARCHAR(200),
   release_date DATE,
   duration INTEGER,
   rating_id INTEGER,
@@ -29,27 +20,34 @@ CREATE TABLE Films (
   FOREIGN KEY (rating_id) REFERENCES Rating(rating_id)
 );
 
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Films_Genres (
+  film_id INTEGER NOT NULL,
+  genre_id INTEGER NOT NULL,
+  PRIMARY KEY (film_id, genre_id),
+  FOREIGN KEY (film_id) REFERENCES Films(film_id),
+  FOREIGN KEY (genre_id) REFERENCES Genres(genre_id)
+);
+
+CREATE TABLE IF NOT EXISTS Users (
   user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  login TEXT NOT NULL,
-  name TEXT,
+  login VARCHAR(32) NOT NULL,
+  name VARCHAR(100),
   email VARCHAR(256) NOT NULL,
   birthday DATE NOT NULL
 );
 
-CREATE TABLE Friends (
-  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS Friends (
   user_id INTEGER NOT NULL,
   friend_id INTEGER NOT NULL,
-  confirmed boolean NOT NULL,
+  PRIMARY KEY (user_id, friend_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id),
   FOREIGN KEY (friend_id) REFERENCES Users(user_id)
 );
 
-CREATE TABLE Likes (
-  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS Likes (
   film_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
+  PRIMARY KEY (film_id, user_id),
   FOREIGN KEY (film_id) REFERENCES Films(film_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );

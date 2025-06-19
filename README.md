@@ -4,7 +4,7 @@
 ![изображение](ER-diagram/QuickDBD-12_sprint.png)
 
 * [Ссылка](https://app.quickdatabasediagrams.com/#/d/i89NpA) на диограмму.
-* [Скрипт](ER-diagram/QuickDBD-12_sprint.sql) базы данных в SQL (метот генерации ключа взят из PostgreSQL).
+* [Скрипт](ER-diagram/QuickDBD-12_sprint.sql) базы данных в SQL на основе H2.
 
 ## Примеры запросов к контроллерам с выгрузкой данных
 <sup>С учетом пройденого материала</sup>
