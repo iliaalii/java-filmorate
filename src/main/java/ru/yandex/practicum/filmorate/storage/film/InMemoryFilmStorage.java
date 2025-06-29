@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -14,11 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Qualifier("inMemoryFilmStorage")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
     private final LocalDate cinemaBirthday = LocalDate.of(1895, Month.DECEMBER, 28);
     private int nextId = 1;
+    private UserStorage uStorage;
 
     @Override
     public Collection<Film> findAll() {
@@ -64,5 +68,21 @@ public class InMemoryFilmStorage implements FilmStorage {
             return oldFilm;
         }
         throw new NotFoundException("Фильм с id = " + newFilm.getId() + " не найден");
+    }
+
+    @Override
+    public void addLike(int id, int userId) {
+        Film film = findFilm(id);
+        if (uStorage.findUser(userId) != null) {
+            film.getLikes().add(userId);
+        }
+    }
+
+    @Override
+    public void removeLike(int id, int userId) {
+        Film film = findFilm(id);
+        if (uStorage.findUser(userId) != null) {
+            film.getLikes().remove(userId);
+        }
     }
 }

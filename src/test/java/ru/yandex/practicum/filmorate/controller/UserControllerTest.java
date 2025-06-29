@@ -29,9 +29,9 @@ public class UserControllerTest {
         user.setLogin("testlogin");
         user.setEmail("test@mail.com");
         user.setName(" ");
+        user.setBirthday(LocalDate.now());
 
         ResponseEntity<User> response = restTemplate.postForEntity("/users", user, User.class);
-
         assertNotNull(response.getBody());
         assertEquals("testlogin", response.getBody().getName());
         assertNotNull(response.getBody().getId());
@@ -42,6 +42,7 @@ public class UserControllerTest {
 
         user.setLogin("");
         user.setEmail("test@mail.com");
+        user.setBirthday(LocalDate.now());
 
         ResponseEntity<User> response = restTemplate.postForEntity("/users", user, User.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -51,6 +52,7 @@ public class UserControllerTest {
     void createUserIfTheLoginContainsSpaces() {
         user.setLogin("bad login");
         user.setEmail("test@mail.com");
+        user.setBirthday(LocalDate.now());
 
         ResponseEntity<User> response = restTemplate.postForEntity("/users", user, User.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -81,6 +83,7 @@ public class UserControllerTest {
     @Test
     void createUserWithoutMail() {
         user.setLogin("test");
+        user.setBirthday(LocalDate.now());
 
         ResponseEntity<User> response = restTemplate.postForEntity("/users", user, User.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -90,6 +93,7 @@ public class UserControllerTest {
     void createUserWithAnIncorrectlyFilledInEmail() {
         user.setLogin("test");
         user.setEmail("testmail.com");
+        user.setBirthday(LocalDate.now());
 
         ResponseEntity<User> response = restTemplate.postForEntity("/users", user, User.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
