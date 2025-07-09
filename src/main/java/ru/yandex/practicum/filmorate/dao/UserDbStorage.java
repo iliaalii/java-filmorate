@@ -24,14 +24,13 @@ import java.util.Collection;
 @Slf4j
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbc;
-    private final UserRowMapper mapper;
+    private final UserRowMapper userRowMapper;
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM Users";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Users WHERE user_id = ?";
     private static final String CREATE_QUERY = "INSERT INTO Users (login, name, email, birthday) VALUES (?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE Users SET login = ?, name = ?, email = ?, birthday = ? " +
             "WHERE user_id = ?";
-
     private static final String ADD_FRIEND_QUERY = "INSERT INTO Friends (user_id, friend_id) VALUES (?, ?)";
     private static final String REMOVE_FRIEND_QUERY = "DELETE FROM Friends WHERE user_id = ? AND friend_id = ?";
     private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM Users u " +
@@ -45,14 +44,14 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Collection<User> findAll() {
         log.info("Поиск всех фильмов");
-        return jdbc.query(FIND_ALL_QUERY, mapper);
+        return jdbc.query(FIND_ALL_QUERY, userRowMapper);
     }
 
     @Override
     public User findUser(int id) {
         try {
             log.info("Поиск фильма по id: {}", id);
-            return jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
+            return jdbc.queryForObject(FIND_BY_ID_QUERY, userRowMapper, id);
         } catch (DataAccessException e) {
             throw new NotFoundException("По указанному id (" + id + ") пользователь не обнаружен");
         }
@@ -128,13 +127,13 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Collection<User> findFriends(int id) {
         log.info("поиск всех друзей пользователя (id): {}", id);
-        return jdbc.query(FIND_FRIENDS_QUERY, mapper, id);
+        return jdbc.query(FIND_FRIENDS_QUERY, userRowMapper, id);
     }
 
     @Override
     public Collection<User> findCommonFriends(int id, int otherId) {
         log.info("Поиск общих друзей между {} и {}", id, otherId);
-        return jdbc.query(FIND_COMMON_FRIENDS_QUERY, mapper, id, otherId);
+        return jdbc.query(FIND_COMMON_FRIENDS_QUERY, userRowMapper, id, otherId);
     }
 
     @Override
