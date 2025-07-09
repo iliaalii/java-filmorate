@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user;
+/*package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -93,3 +93,4 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toList()));
     }
 }
+*/

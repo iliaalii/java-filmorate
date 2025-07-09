@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -17,6 +19,7 @@ import java.util.Collection;
 @Validated
 public class UserController {
     private final UserService service;
+    private final EventService eventService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -64,5 +67,11 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> findCommonFriends(@PathVariable @Positive int id, @PathVariable @Positive int otherId) {
         return service.findCommonFriends(id, otherId);
+    }
+
+    @GetMapping("/{id}/feed")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Event> getUserEvents(@PathVariable @Positive final long id) {
+        return eventService.getUserEvents(id);
     }
 }
