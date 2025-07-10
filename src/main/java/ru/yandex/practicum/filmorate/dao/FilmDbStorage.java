@@ -54,6 +54,12 @@ public class FilmDbStorage implements FilmStorage {
     private static final String FIND_ALL_GENRE_QUERY = "SELECT g.*, fg.film_id FROM Genres g " +
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id";
 
+    private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
+            " f.duration, f.rating_id FROM Films f" +
+            " JOIN Likes l1 ON f.film_id = l1.film_id AND l1.user_id = ?" +
+            " JOIN Likes l2 ON f.film_id = l2.film_id AND l2.user_id = ?" +
+            " ORDER BY (SELECT COUNT(*) FROM Likes l WHERE l.film_id = f.film_id) DESC";
+
     @Override
     public Collection<Film> findAll() {
         log.info("Поиск всех фильмов");
@@ -164,6 +170,10 @@ public class FilmDbStorage implements FilmStorage {
     public void removeLike(int id, int userId) {
         jdbc.update(REMOVE_LIKE_QUERY, id, userId);
         log.info("Пользователь (id): {}, убрал лайк фильму (id): {}", userId, id);
+    }
+
+    public List<Film> getCommonFilms(final int id, final int friendId) {
+        return jdbc.query(GET_COMMON_FILMS, mapper, id, friendId);
     }
 
     private void setFilmGenres(Integer filmId, Set<Genre> genres) {

@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
@@ -59,5 +60,11 @@ public class FilmController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") @Positive Integer count) {
         return service.getPopularFilms(count);
+    }
+
+    @GetMapping("/common")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getCommonFilms(@RequestParam final int userId, @RequestParam final int friendId) {
+        return service.getCommonFilms(userId, friendId);
     }
 }

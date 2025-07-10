@@ -10,7 +10,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,6 +22,11 @@ public class GenreDbStorage {
 
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Genres WHERE genre_id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM Genres";
+    private static final String GET_FILM_GENRES = "SELECT g.genre_id, g.name FROM Film_Genres AS fg " +
+            "JOIN Genres AS g ON fg.genre_id = g.genre_id WHERE film_id = ?";
+    private static final String GET_FILMS_GENRES = "SELECT fg.film_id, g.genre_id, g.name " +
+                                                   "FROM Films_Genres fg JOIN Genres g ON fg.genre_id = g.genre_id " +
+                                                   "WHERE fg.film_id IN ";
 
     public Genre findGenre(int id) {
         try {
@@ -34,5 +40,31 @@ public class GenreDbStorage {
     public Collection<Genre> findAllGenre() {
         log.info("Поиск всех доступных жанров");
         return jdbc.query(FIND_ALL_QUERY, mapper);
+    }
+
+    public Collection<Genre> getFilmsGenres(final int filmId) {
+        return jdbc.query(GET_FILM_GENRES, mapper, filmId);
+    }
+
+    public Map<Integer, Set<Genre>> getFilmsGenres(List<Integer> filmsId) {
+        if (filmsId.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        String idsInSql = filmsId.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(", ", "(", ")"));
+
+        return jdbc.query(GET_FILMS_GENRES + idsInSql, rs -> {
+            Map<Integer,Set<Genre>> genresMap = new HashMap<>();
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("genre_id"));
+                genre.setName(rs.getString("name"));
+                genresMap.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+            }
+            return genresMap;
+        }, filmsId.toArray());
     }
 }
