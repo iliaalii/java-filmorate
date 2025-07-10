@@ -173,6 +173,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getCommonFilms(final int id, final int friendId) {
+        log.trace("Получение общих фильмов из базы данных.");
         return jdbc.query(GET_COMMON_FILMS, mapper, id, friendId);
     }
 
