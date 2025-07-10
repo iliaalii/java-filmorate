@@ -173,6 +173,44 @@ class FilmorateApplicationTests {
                 .hasMessageContaining("По указанному id (" + review.getReviewId() + ") обзор не обнаружен");
     }
 
+    @Test
+    public void testAddLikeAndDislikeReview() {
+        user = userStorage.create(user);
+        film = filmStorage.create(film);
 
+        review.setFilmId(film.getId());
+        review.setUserId(user.getId());
+        review = reviewStorage.add(review);
 
+        Optional<Review> reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
+
+        assertThat(reviewOptional)
+                .isPresent()
+                .hasValueSatisfying(r ->
+                        assertThat(r).hasFieldOrPropertyWithValue("useful", 0)
+                );
+
+        reviewStorage.addLike(review.getReviewId(), user.getId());
+        user = userStorage.create(user);
+        reviewStorage.addLike(review.getReviewId(), user.getId());
+
+        reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
+
+        assertThat(reviewOptional)
+                .isPresent()
+                .hasValueSatisfying(r ->
+                        assertThat(r).hasFieldOrPropertyWithValue("useful", 2)
+                );
+
+        user = userStorage.create(user);
+        reviewStorage.addDislike(review.getReviewId(), user.getId());
+
+        reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
+
+        assertThat(reviewOptional)
+                .isPresent()
+                .hasValueSatisfying(r ->
+                        assertThat(r).hasFieldOrPropertyWithValue("useful", 1)
+                );
+    }
 }
