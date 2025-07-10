@@ -22,8 +22,6 @@ public class GenreDbStorage {
 
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Genres WHERE genre_id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM Genres";
-    private static final String GET_FILM_GENRES = "SELECT g.genre_id, g.name FROM Film_Genres AS fg " +
-            "JOIN Genres AS g ON fg.genre_id = g.genre_id WHERE film_id = ?";
     private static final String GET_FILMS_GENRES = "SELECT fg.film_id, g.genre_id, g.name " +
                                                    "FROM Films_Genres fg JOIN Genres g ON fg.genre_id = g.genre_id " +
                                                    "WHERE fg.film_id IN ";
@@ -42,11 +40,7 @@ public class GenreDbStorage {
         return jdbc.query(FIND_ALL_QUERY, mapper);
     }
 
-    public Collection<Genre> getFilmsGenres(final int filmId) {
-        return jdbc.query(GET_FILM_GENRES, mapper, filmId);
-    }
-
-    public Map<Integer, Set<Genre>> getFilmsGenres(List<Integer> filmsId) {
+    public Map<Integer, Set<Genre>> getFilmsGenres(final List<Integer> filmsId) {
         if (filmsId.isEmpty()) {
             return Collections.emptyMap();
         }
