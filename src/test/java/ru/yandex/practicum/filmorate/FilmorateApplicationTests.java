@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.dao.mappers.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -20,8 +21,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -30,10 +31,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         UserDbStorage.class, UserRowMapper.class,
         FilmDbStorage.class, FilmRowMapper.class,
         GenreDbStorage.class, GenreRowMapper.class,
-        RatingDbStorage.class, RatingRowMapper.class,
         ReviewDbStorage.class, ReviewRowMapper.class
 })
 class FilmorateApplicationTests {
+    private final JdbcTemplate jdbc;
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreDbStorage genreStorage;
@@ -42,6 +43,8 @@ class FilmorateApplicationTests {
     User user;
     Film film;
     Review review;
+    @Autowired
+    private UserDbStorage userDbStorage;
 
     @BeforeEach
     void setup() {
@@ -145,6 +148,32 @@ class FilmorateApplicationTests {
     void testGetGenres() {
         Collection<Genre> genres = genreStorage.findAllGenre();
         assertThat(genres).size().isEqualTo(6);
+    }
+
+    @Test
+    void testThatExistingUserCanRemove() {
+        user = userStorage.create(user);
+        Integer countBefore = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
+        assertEquals(1, countBefore);
+
+        userStorage.removeUser(user.getId());
+        Integer countAfter = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
+        assertEquals(0, countAfter);
+    }
+
+    @Test
+    void testThatExistingFilmCanRemove() {
+        film = filmStorage.create(film);
+        Integer countBefore = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
+        assertEquals(1, countBefore);
+
+        filmStorage.removeFilm(film.getId());
+        Integer countAfter = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
+        assertEquals(0, countAfter);
     }
 
     @Test
