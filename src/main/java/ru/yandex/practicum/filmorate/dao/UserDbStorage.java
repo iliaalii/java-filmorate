@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,7 +20,6 @@ import java.sql.Statement;
 import java.util.Collection;
 
 @Repository
-@Qualifier("userDbStorage")
 @RequiredArgsConstructor
 @Slf4j
 public class UserDbStorage implements UserStorage {
