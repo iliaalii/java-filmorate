@@ -145,6 +145,6 @@ public class UserDbStorage implements UserStorage {
         if (affected == 0) {
             throw new NotFoundException("Пользователь с ID " + id + " не найден");
         }
-        log.info("Пользователь с {id}: {} был удалён", id );
+        log.info("Пользователь с {id}: {} был удалён", id);
     }
 }
