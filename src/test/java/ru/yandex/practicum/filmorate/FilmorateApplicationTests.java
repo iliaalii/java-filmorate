@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         UserDbStorage.class, UserRowMapper.class,
         FilmDbStorage.class, FilmRowMapper.class,
         GenreDbStorage.class, GenreRowMapper.class,
+        RatingDbStorage.class, RatingRowMapper.class,
         ReviewDbStorage.class, ReviewRowMapper.class
 })
 class FilmorateApplicationTests {

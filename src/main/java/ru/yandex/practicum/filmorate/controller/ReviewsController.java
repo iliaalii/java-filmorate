@@ -44,7 +44,8 @@ public class ReviewsController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Review> findAll(@RequestParam(required = false) @Positive Integer filmId, @RequestParam(defaultValue = "10") @Positive int count) {
+    public Collection<Review> findAll(@RequestParam(required = false) @Positive Integer filmId,
+                                      @RequestParam(defaultValue = "10") @Positive int count) {
         return service.findAll(filmId, count);
     }
 

@@ -23,8 +23,8 @@ import java.util.Collection;
 public class ReviewDbStorage {
     private final JdbcTemplate jdbc;
     private final ReviewRowMapper mapper;
-    private final FilmDbStorage fStorage;
-    private final UserDbStorage uStorage;
+    private final FilmDbStorage filmStorage;
+    private final UserDbStorage userStorage;
 
     private static final String ADD_QUERY = "INSERT INTO Reviews (film_id, user_id, content, is_positive) " +
             "VALUES (?, ?, ?, ?)";
@@ -132,7 +132,7 @@ public class ReviewDbStorage {
 
     private void checkRelevance(Review review) {
         log.info("Проводим проверку наличия пользователя и фильма");
-        fStorage.findFilm(review.getFilmId());
-        uStorage.findUser(review.getUserId());
+        filmStorage.findFilm(review.getFilmId());
+        userStorage.findUser(review.getUserId());
     }
 }

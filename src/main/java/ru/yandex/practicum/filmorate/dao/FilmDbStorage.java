@@ -28,7 +28,7 @@ import java.util.*;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbc;
     private final FilmRowMapper mapper;
-    private final RatingDbStorage rStorage;
+    private final RatingDbStorage ratingStorage;
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM Films";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Films WHERE film_id = ?";
@@ -237,7 +237,7 @@ public class FilmDbStorage implements FilmStorage {
 
     private Rating findRatingsFilm(int id) {
         log.info("Отправляем запрос рейтинга для фильма");
-        return rStorage.findRating(id);
+        return ratingStorage.findRating(id);
     }
 
     private Map<Integer, Rating> findAllRatingsByFilm() {
