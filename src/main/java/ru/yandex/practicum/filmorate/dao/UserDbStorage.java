@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,7 +20,6 @@ import java.sql.Statement;
 import java.util.Collection;
 
 @Repository
-@Qualifier("userDbStorage")
 @RequiredArgsConstructor
 @Slf4j
 public class UserDbStorage implements UserStorage {
@@ -42,7 +40,7 @@ public class UserDbStorage implements UserStorage {
             "INNER JOIN Friends f2 ON f1.friend_id = f2.friend_id " +
             "INNER JOIN Users u ON f1.friend_id = u.user_id " +
             "WHERE f1.user_id = ? AND f2.user_id = ?";
-
+    private static final String REMOVE_USER_QUERY = "DELETE FROM Users WHERE user_id = ?";
 
     @Override
     public Collection<User> findAll() {
@@ -137,5 +135,14 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> findCommonFriends(int id, int otherId) {
         log.info("Поиск общих друзей между {} и {}", id, otherId);
         return jdbc.query(FIND_COMMON_FRIENDS_QUERY, mapper, id, otherId);
+    }
+
+    @Override
+    public void removeUser(int id) {
+        int affected = jdbc.update(REMOVE_USER_QUERY, id);
+        if (affected == 0) {
+            throw new NotFoundException("Пользователь с ID " + id + " не найден");
+        }
+        log.info("Пользователь с {id}: {} был удалён", id);
     }
 }

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
@@ -27,8 +26,8 @@ public class FilmService {
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
 
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       @Qualifier("userDbStorage") UserStorage userStorage,
+    public FilmService(FilmStorage filmStorage,
+                       UserStorage userStorage,
                        RatingDbStorage ratingStorage,
                        GenreDbStorage genreStorage) {
         this.filmStorage = filmStorage;
@@ -95,6 +94,10 @@ public class FilmService {
                 .toList());
     }
 
+    public void removeFilm(int filmId) {
+        log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
+        filmStorage.removeFilm(filmId);
+    }
 
     private void validationFilm(Film film) {
         log.info("Проводим проверку валидности");

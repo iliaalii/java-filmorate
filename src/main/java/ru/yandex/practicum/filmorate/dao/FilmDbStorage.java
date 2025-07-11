@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -24,7 +23,6 @@ import java.sql.Date;
 import java.util.*;
 
 @Repository
-@Qualifier("filmDbStorage")
 @RequiredArgsConstructor
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
@@ -53,6 +51,7 @@ public class FilmDbStorage implements FilmStorage {
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id WHERE fg.film_id = ?";
     private static final String FIND_ALL_GENRE_QUERY = "SELECT g.*, fg.film_id FROM Genres g " +
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id";
+    private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
 
     private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
             " f.duration, f.rating_id FROM Films f" +
@@ -170,6 +169,15 @@ public class FilmDbStorage implements FilmStorage {
     public void removeLike(int id, int userId) {
         jdbc.update(REMOVE_LIKE_QUERY, id, userId);
         log.info("Пользователь (id): {}, убрал лайк фильму (id): {}", userId, id);
+    }
+
+    @Override
+    public void removeFilm(int filmId) {
+        int affected = jdbc.update(REMOVE_FILM_QUERY, filmId);
+        if (affected == 0) {
+            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+        }
+        log.info("Фильм с {filmId}: {} был удалён", filmId);
     }
 
     public List<Film> getCommonFilms(final int id, final int friendId) {
