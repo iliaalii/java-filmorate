@@ -9,6 +9,8 @@ import org.springframework.http.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -119,5 +121,49 @@ class FilmControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Updated description", response.getBody().getDescription());
+    }
+
+    @Test
+    void testGetCommonFilms() {
+        int userId = (int) Objects.requireNonNull(restTemplate.postForEntity("/users", Map.of(
+                "email", "user1@mail.ru",
+                "login", "user1",
+                "name", "User",
+                "birthday", "2025-07-10"
+        ), Map.class).getBody()).get("id");
+
+        int friendId = (int) Objects.requireNonNull(restTemplate.postForEntity("/users", Map.of(
+                "email", "user2@mail.ru",
+                "login", "user2",
+                "name", "User",
+                "birthday", "2025-07-10"
+        ), Map.class).getBody()).get("id");
+
+        Map<String, Object> filmRequest = Map.of(
+                "name", "SuperFilm",
+                "description", "filmDescription",
+                "duration", 120,
+                "releaseDate", "2025-07-10"
+        );
+
+        int filmId = (int) Objects.requireNonNull(restTemplate.postForEntity("/films", filmRequest, Map.class)
+                .getBody()).get("id");
+
+        restTemplate.put("/films/{id}/like/{userId}", null, filmId, userId);
+        restTemplate.put("/films/{id}/like/{userId}", null, filmId, friendId);
+
+        restTemplate.put("/users/{id}/friends/{friendId}", null, userId, friendId);
+
+        ResponseEntity<Film[]> response = restTemplate.getForEntity(
+                "/films/common?userId={userId}&friendId={friendId}",
+                Film[].class,
+                userId, friendId
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Film[] films = response.getBody();
+        assertNotNull(films);
+        assertEquals(1, films.length);
+        assertEquals("SuperFilm", films[0].getName());
     }
 }
