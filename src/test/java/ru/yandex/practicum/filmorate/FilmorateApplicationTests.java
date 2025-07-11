@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
@@ -24,7 +25,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -36,12 +37,15 @@ import static org.assertj.core.api.Assertions.assertThat;
         RatingDbStorage.class, RatingRowMapper.class
 })
 class FilmorateApplicationTests {
+    private final JdbcTemplate jdbc;
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreDbStorage genreStorage;
     private final RatingDbStorage ratingStorage;
     User user;
     Film film;
+    @Autowired
+    private UserDbStorage userDbStorage;
 
     @BeforeEach
     void setup() {
@@ -70,7 +74,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testUpdateUser() {
+    void testUpdateUser() {
         user = userStorage.create(user);
         user.setName("UpdateName");
         userStorage.update(user);
@@ -85,7 +89,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testAddAndRemoveFriend() {
+    void testAddAndRemoveFriend() {
         user = userStorage.create(user);
         System.out.println(user);
         User friend = new User();
@@ -110,7 +114,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testCreateFilmAndFindById() {
+    void testCreateFilmAndFindById() {
         film = filmStorage.create(film);
 
         Optional<Film> filmOptional = Optional.ofNullable(filmStorage.findFilm(film.getId()));
@@ -123,7 +127,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testUpdateFilm() {
+    void testUpdateFilm() {
         film = filmStorage.create(film);
         film.setName("UpdateName");
         filmStorage.update(film);
@@ -138,8 +142,34 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testGetGenres() {
+    void testGetGenres() {
         Collection<Genre> genres = genreStorage.findAllGenre();
         assertThat(genres).size().isEqualTo(6);
+    }
+
+    @Test
+    void testThatExistingUserCanRemove() {
+        user = userStorage.create(user);
+        Integer countBefore = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
+        assertEquals(1, countBefore);
+
+        userStorage.removeUser(user.getId());
+        Integer countAfter = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
+        assertEquals(0, countAfter);
+    }
+
+    @Test
+    void testThatExistingFilmCanRemove() {
+        film = filmStorage.create(film);
+        Integer countBefore = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
+        assertEquals(1, countBefore);
+
+        filmStorage.removeFilm(film.getId());
+        Integer countAfter = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
+        assertEquals(0, countAfter);
     }
 }
