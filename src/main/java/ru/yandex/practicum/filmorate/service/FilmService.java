@@ -81,6 +81,14 @@ public class FilmService {
                 .toList());
     }
 
+    public void removeFilm(int filmId) {
+        log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
+        if (filmStorage.findFilm(filmId) != null) {
+            filmStorage.removeFilm(filmId);
+        } else {
+            throw new NotFoundException("Фильм с id " + filmId + " не найден");
+        }
+    }
 
     private void validationFilm(Film film) {
         log.info("Проводим проверку валидности");

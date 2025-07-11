@@ -71,4 +71,13 @@ public class UserService {
         log.info("Обрабатываем запрос на поиск общих друзей между пользователями");
         return storage.findCommonFriends(id, otherId);
     }
+
+    public void removeUser(int id) {
+        log.info("Обрабатываем запрос на удаление пользователя (id): {}", id);
+        if (storage.findUser(id) != null) {
+            storage.removeUser(id);
+        } else {
+            throw new NotFoundException("Пользователь с id " + id + " не найден");
+        }
+    }
 }
