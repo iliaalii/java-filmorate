@@ -61,7 +61,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testCreateUserAndFindById() {
+    void testCreateUserAndFindById() {
         user = userStorage.create(user);
 
         Optional<User> userOptional = Optional.ofNullable(userStorage.findUser(user.getId()));
@@ -74,7 +74,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testUpdateUser() {
+    void testUpdateUser() {
         user = userStorage.create(user);
         user.setName("UpdateName");
         userStorage.update(user);
@@ -89,7 +89,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testAddAndRemoveFriend() {
+    void testAddAndRemoveFriend() {
         user = userStorage.create(user);
         System.out.println(user);
         User friend = new User();
@@ -114,7 +114,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testCreateFilmAndFindById() {
+    void testCreateFilmAndFindById() {
         film = filmStorage.create(film);
 
         Optional<Film> filmOptional = Optional.ofNullable(filmStorage.findFilm(film.getId()));
@@ -127,7 +127,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testUpdateFilm() {
+    void testUpdateFilm() {
         film = filmStorage.create(film);
         film.setName("UpdateName");
         filmStorage.update(film);
@@ -142,13 +142,13 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testGetGenres() {
+    void testGetGenres() {
         Collection<Genre> genres = genreStorage.findAllGenre();
         assertThat(genres).size().isEqualTo(6);
     }
 
     @Test
-    public void testAddReviewFindByIdAndDelete() {
+    void testAddReviewFindByIdAndDelete() {
         user = userStorage.create(user);
         film = filmStorage.create(film);
 
@@ -174,7 +174,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testAddLikeAndDislikeReview() {
+    void testAddLikeAndDislikeReview() {
         user = userStorage.create(user);
         film = filmStorage.create(film);
 
