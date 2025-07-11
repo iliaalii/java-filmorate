@@ -173,7 +173,7 @@ public class FilmDbStorage implements FilmStorage {
         if (affected == 0) {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
-        log.info("Фильм с {filmId}: {} был удалён", filmId );
+        log.info("Фильм с {filmId}: {} был удалён", filmId);
     }
 
     private void setFilmGenres(Integer filmId, Set<Genre> genres) {
