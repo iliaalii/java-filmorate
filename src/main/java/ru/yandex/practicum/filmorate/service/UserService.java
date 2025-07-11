@@ -70,4 +70,9 @@ public class UserService {
         log.info("Обрабатываем запрос на поиск общих друзей между пользователями");
         return storage.findCommonFriends(id, otherId);
     }
+
+    public void removeUser(int id) {
+        log.info("Обрабатываем запрос на удаление пользователя (id): {}", id);
+        storage.removeUser(id);
+    }
 }

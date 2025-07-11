@@ -80,6 +80,10 @@ public class FilmService {
                 .toList());
     }
 
+    public void removeFilm(int filmId) {
+        log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
+        filmStorage.removeFilm(filmId);
+    }
 
     private void validationFilm(Film film) {
         log.info("Проводим проверку валидности");
