@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FilmService {
     private final FilmStorage filmStorage;
@@ -27,18 +29,6 @@ public class FilmService {
     private final EventService eventService;
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
-
-    public FilmService(FilmStorage filmStorage,
-                       UserStorage userStorage,
-                       RatingDbStorage ratingStorage,
-                       GenreDbStorage genreStorage,
-                       EventService eventService) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.ratingStorage = ratingStorage;
-        this.genreStorage = genreStorage;
-        this.eventService = eventService;
-    }
 
     public Collection<Film> findAll() {
         log.info("Обрабатываем запрос на поиск всех фильмов");
@@ -90,6 +80,7 @@ public class FilmService {
         return films.stream()
                 .peek(film -> film.setGenres(filmsGenres.get(film.getId())))
                 .toList();
+        eventService.createNowEvent(userId, id, Event.EventType.LIKE, Event.Operation.REMOVE);
     }
 
     public Collection<Film> getPopularFilms(Integer count) {
