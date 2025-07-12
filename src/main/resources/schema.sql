@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS Events (
   operation VARCHAR(10) NOT NULL,
   entity_id BIGINT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES Users(user_id)
-)
 );
 
 CREATE TABLE IF NOT EXISTS Events (

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
@@ -11,6 +12,7 @@ import java.sql.Timestamp;
 @Builder
 public class Event {
 
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     Timestamp timestamp;
     Long userId;
     EventType eventType;

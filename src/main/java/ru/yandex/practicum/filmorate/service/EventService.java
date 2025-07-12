@@ -18,7 +18,7 @@ public class EventService {
     private final EventDbStorage storage;
 
     public void createNowEvent(final long userId, final long entityId,
-                                       final Event.EventType eventType, Event.Operation operation) {
+                                       final Event.EventType eventType, final Event.Operation operation) {
         log.trace("Создается ивент.");
 
         storage.addEvent(Event.builder()

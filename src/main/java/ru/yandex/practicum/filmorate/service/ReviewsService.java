@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDbStorage;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;
@@ -13,16 +14,33 @@ import java.util.Collection;
 @Slf4j
 public class ReviewsService {
     private final ReviewDbStorage storage;
+    private final EventService eventService;
+
 
     public Review add(Review review) {
-        return storage.add(review);
+        Review savedReview = storage.add(review);
+
+        eventService.createNowEvent(review.getUserId(), review.getReviewId(), Event.EventType.REVIEW,
+                Event.Operation.ADD);
+
+        return savedReview;
     }
 
     public Review update(Review review) {
-        return storage.update(review);
+        Review savedReview = storage.update(review);
+
+        eventService.createNowEvent(review.getUserId(), review.getReviewId(), Event.EventType.REVIEW,
+                Event.Operation.UPDATE);
+
+        return savedReview;
     }
 
     public void remove(int id) {
+        Review savedReview = storage.findById(id);
+
+        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), Event.EventType.REVIEW,
+                Event.Operation.REMOVE);
+
         storage.remove(id);
     }
 

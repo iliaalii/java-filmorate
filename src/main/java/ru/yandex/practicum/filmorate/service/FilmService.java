@@ -80,7 +80,6 @@ public class FilmService {
         return films.stream()
                 .peek(film -> film.setGenres(filmsGenres.get(film.getId())))
                 .toList();
-        eventService.createNowEvent(userId, id, Event.EventType.LIKE, Event.Operation.REMOVE);
     }
 
     public Collection<Film> getPopularFilms(Integer count) {
