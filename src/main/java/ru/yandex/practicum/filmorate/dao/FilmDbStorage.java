@@ -94,6 +94,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             log.info("Поиск фильма с id: {}", id);
             Film film = jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
+            assert film != null;
             film.setLikes(findLikeFilm(id));
             if (film.getMpa() != null && film.getMpa().getId() != null) {
                 film.setMpa(findRatingsFilm(film.getMpa().getId()));
@@ -185,6 +186,15 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public Collection<Film> recommendFilms(final long userId) {
+        log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
+        try {
+            return jdbc.query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
+        } catch (EmptyResultDataAccessException e) {
+            log.trace("Рекомендаций для пользователя с id: {} не найдено.", userId);
+            return List.of();
+        }
+
     public void removeFilm(int filmId) {
         int affected = jdbc.update(REMOVE_FILM_QUERY, filmId);
         if (affected == 0) {
@@ -196,17 +206,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getCommonFilms(final int id, final int friendId) {
         log.trace("Получение общих фильмов из базы данных.");
         return jdbc.query(GET_COMMON_FILMS, mapper, id, friendId);
-    }
 
-    @Override
-    public Collection<Film> recommendFilms(final long userId) {
-        log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
-        try {
-            return jdbc.query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
-        } catch (EmptyResultDataAccessException e) {
-            log.trace("Рекомендаций для пользователя с id: {} не найдено.", userId);
-            return List.of();
-        }
     }
 
     private void setFilmGenres(Integer filmId, Set<Genre> genres) {

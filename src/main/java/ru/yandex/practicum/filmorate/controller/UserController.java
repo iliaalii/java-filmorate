@@ -67,11 +67,13 @@ public class UserController {
         return service.findCommonFriends(id, otherId);
     }
 
+
     @GetMapping("/{userId}/recommendations")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> recommendFilms(@PathVariable @Positive final long userId) {
         return service.recommendFilms(userId);
     }
+}
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
