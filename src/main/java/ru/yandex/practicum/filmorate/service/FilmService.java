@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -17,24 +19,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final RatingDbStorage ratingStorage;
     private final GenreDbStorage genreStorage;
+    private final EventService eventService;
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
-
-    public FilmService(FilmStorage filmStorage,
-                       UserStorage userStorage,
-                       RatingDbStorage ratingStorage,
-                       GenreDbStorage genreStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.ratingStorage = ratingStorage;
-        this.genreStorage = genreStorage;
-    }
 
     public Collection<Film> findAll() {
         log.info("Обрабатываем запрос на поиск всех фильмов");
@@ -63,6 +57,7 @@ public class FilmService {
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.addLike(id, userId);
         }
+        eventService.createNowEvent(userId, id, Event.EventType.LIKE, Event.Operation.ADD);
     }
 
     public void removeLike(int id, int userId) {
@@ -70,6 +65,7 @@ public class FilmService {
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.removeLike(id, userId);
         }
+        eventService.createNowEvent(userId, id, Event.EventType.LIKE, Event.Operation.REMOVE);
     }
 
     public List<Film> getCommonFilms(final int id, final int userId) {
