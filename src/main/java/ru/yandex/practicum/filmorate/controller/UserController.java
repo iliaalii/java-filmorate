@@ -72,4 +72,10 @@ public class UserController {
     public Collection<Film> recommendFilms(@PathVariable @Positive final long userId) {
         return service.recommendFilms(userId);
     }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeUser(@PathVariable int userId) {
+        service.removeUser(userId);
+    }
 }
