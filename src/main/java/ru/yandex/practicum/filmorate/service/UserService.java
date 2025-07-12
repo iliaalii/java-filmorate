@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
@@ -12,52 +15,50 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class UserService {
-    private final UserStorage storage;
-
-    public UserService(UserStorage userStorage) {
-        this.storage = userStorage;
-    }
+    private final UserStorage userStorage;
+    private final FilmStorage filmStorage;
 
     public Collection<User> findAll() {
         log.info("Обрабатываем запрос на поиск всех пользователей");
-        return storage.findAll();
+        return userStorage.findAll();
     }
 
     public User findUser(int id) {
         log.info("Обрабатываем запрос на поиск пользователя");
-        return storage.findUser(id);
+        return userStorage.findUser(id);
     }
 
     public User create(User user) {
         log.info("Обрабатываем запрос на добавление нового пользователя");
-        return storage.create(user);
+        return userStorage.create(user);
     }
 
     public User update(User newUser) {
         log.info("Обрабатываем запрос на обновление пользователя");
-        return storage.update(newUser);
+        return userStorage.update(newUser);
     }
 
     public void addFriend(int id, int friendId) {
         log.info("Обрабатываем запрос на добавление в друзья");
-        if (storage.findUser(id) != null && storage.findUser(friendId) != null) {
-            storage.addFriend(id, friendId);
+        if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
+            userStorage.addFriend(id, friendId);
         }
     }
 
     public void removeFriend(int id, int friendId) {
         log.info("Обрабатываем запрос на удаление из друзей");
-        if (storage.findUser(id) != null && storage.findUser(friendId) != null) {
-            storage.removeFriend(id, friendId);
+        if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
+            userStorage.removeFriend(id, friendId);
         }
     }
 
     public Collection<User> findFriends(int id) {
         log.info("Обрабатываем запрос на поиск всех друзей пользователя");
-        if (storage.findUser(id) != null) {
-            return List.copyOf(storage.findFriends(id).stream()
+        if (userStorage.findUser(id) != null) {
+            return List.copyOf(userStorage.findFriends(id).stream()
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList()));
         } else {
@@ -68,6 +69,11 @@ public class UserService {
 
     public Collection<User> findCommonFriends(int id, int otherId) {
         log.info("Обрабатываем запрос на поиск общих друзей между пользователями");
-        return storage.findCommonFriends(id, otherId);
+        return userStorage.findCommonFriends(id, otherId);
+    }
+
+    public Collection<Film> recommendFilms(final long userId) {
+        log.trace("Подбираются рекомендации для пользователя с id: {}.",userId);
+        return filmStorage.recommendFilms(userId);
     }
 }

@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dao.mappers.GenreRowMapper;
@@ -32,8 +34,8 @@ public class FilmDbStorage implements FilmStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM Films";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Films WHERE film_id = ?";
-    private static final String CREATE_QUERY = "INSERT INTO Films (name, description, release_date, duration, rating_id) " +
-            "VALUES (?, ?, ?, ?, ?)";
+    private static final String CREATE_QUERY = "INSERT INTO Films (name, description, release_date, duration," +
+            " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE Films SET name = ?,description = ?, release_date = ?," +
             " duration = ?, rating_id = ? WHERE film_id = ?";
 
@@ -51,6 +53,17 @@ public class FilmDbStorage implements FilmStorage {
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id WHERE fg.film_id = ?";
     private static final String FIND_ALL_GENRE_QUERY = "SELECT g.*, fg.film_id FROM Genres g " +
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id";
+
+    private static final String RECOMMEND_FILMS_QUERY =
+            "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
+                    "FROM Films f " +
+                    "JOIN Likes l ON f.film_id = l.film_id " +
+                    "LEFT JOIN Likes l2 ON l2.film_id = f.film_id AND l2.user_id = ? " +
+                    "WHERE l.user_id = ( " +
+                    "SELECT l2.user_id FROM Likes l1 JOIN Likes l2 ON l1.film_id = l2.film_id " +
+                    "WHERE l1.user_id = ? AND l2.user_id != ? GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
+                    "AND l2.film_id IS NULL";
+
 
     @Override
     public Collection<Film> findAll() {
@@ -74,6 +87,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             log.info("Поиск фильма с id: {}", id);
             Film film = jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
+            assert film != null;
             film.setLikes(findLikeFilm(id));
             if (film.getMpa() != null && film.getMpa().getId() != null) {
                 film.setMpa(findRatingsFilm(film.getMpa().getId()));
@@ -164,10 +178,21 @@ public class FilmDbStorage implements FilmStorage {
         log.info("Пользователь (id): {}, убрал лайк фильму (id): {}", userId, id);
     }
 
+    @Override
+    public Collection<Film> recommendFilms(final long userId) {
+        log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
+        try {
+            return jdbc.query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
+        } catch (EmptyResultDataAccessException e) {
+            log.trace("Рекомендаций для пользователя с id: {} не найдено.", userId);
+            return List.of();
+        }
+    }
+
     private void setFilmGenres(Integer filmId, Set<Genre> genres) {
         jdbc.update(CLEAR_GENRE_BY_FILM_QUERY, filmId);
         jdbc.batchUpdate(ADD_GENRE_BY_FILM_QUERY, new BatchPreparedStatementSetter() {
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
+            public void setValues(@NonNull PreparedStatement ps, int i) throws SQLException {
                 Genre genre = genres.stream().toList().get(i);
                 ps.setInt(1, filmId);
                 ps.setInt(2, genre.getId());

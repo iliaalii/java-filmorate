@@ -6,9 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
+import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,6 +22,12 @@ public class UserControllerTest {
 
     @Autowired
     TestRestTemplate restTemplate;
+
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    FilmService filmService;
 
     @BeforeEach
     void setup() {
@@ -101,6 +111,48 @@ public class UserControllerTest {
 
         response = restTemplate.postForEntity("/users", user, User.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void testRecommendFilms() {
+        User user1 = new User();
+        user1.setLogin("user1");
+        user1.setEmail("novacancy@mail.ru");
+        user1.setBirthday(LocalDate.of(2025,7, 12));
+
+        User user2 = new User();
+        user2.setLogin("user2");
+        user2.setEmail("vacancy@mail.ru");
+        user2.setBirthday(LocalDate.of(2025,7, 12));
+
+        user1 = userService.create(user1);
+        user2 = userService.create(user2);
+
+        Film film_a = new Film();
+        film_a.setName("Фильм_А");
+        film_a.setDescription("Очевидно это фильм А.");
+        film_a.setReleaseDate(LocalDate.of(2025, 7,12));
+        film_a.setDuration(120);
+
+        Film film_b = new Film();
+        film_b.setName("Фильм_Б");
+        film_b.setDescription("Очевидно это фильм Б.");
+        film_b.setReleaseDate(LocalDate.of(2025, 7,12));
+        film_b.setDuration(120);
+
+        film_a = filmService.create(film_a);
+        film_b = filmService.create(film_b);
+
+        filmService.addLike(film_a.getId(), user1.getId());
+        filmService.addLike(film_b.getId(), user1.getId());
+
+        filmService.addLike(film_a.getId(), user2.getId());
+
+        Collection<Film> recommendations = userService.recommendFilms(user2.getId());
+
+        assertNotNull(recommendations);
+        Film finalFilm_b = film_b;
+        assertTrue(recommendations.stream().anyMatch(f -> f.getId().equals(finalFilm_b.getId())));
     }
 
     @Test
