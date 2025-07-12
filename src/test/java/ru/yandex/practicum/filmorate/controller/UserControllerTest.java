@@ -128,31 +128,31 @@ public class UserControllerTest {
         user1 = userService.create(user1);
         user2 = userService.create(user2);
 
-        Film film_a = new Film();
-        film_a.setName("Фильм_А");
-        film_a.setDescription("Очевидно это фильм А.");
-        film_a.setReleaseDate(LocalDate.of(2025, 7,12));
-        film_a.setDuration(120);
+        Film film1 = new Film();
+        film1.setName("Фильм_А");
+        film1.setDescription("Очевидно это фильм А.");
+        film1.setReleaseDate(LocalDate.of(2025, 7,12));
+        film1.setDuration(120);
 
-        Film film_b = new Film();
-        film_b.setName("Фильм_Б");
-        film_b.setDescription("Очевидно это фильм Б.");
-        film_b.setReleaseDate(LocalDate.of(2025, 7,12));
-        film_b.setDuration(120);
+        Film film2 = new Film();
+        film2.setName("Фильм_Б");
+        film2.setDescription("Очевидно это фильм Б.");
+        film2.setReleaseDate(LocalDate.of(2025, 7,12));
+        film2.setDuration(120);
 
-        film_a = filmService.create(film_a);
-        film_b = filmService.create(film_b);
+        film1 = filmService.create(film1);
+        film2 = filmService.create(film2);
 
-        filmService.addLike(film_a.getId(), user1.getId());
-        filmService.addLike(film_b.getId(), user1.getId());
+        filmService.addLike(film1.getId(), user1.getId());
+        filmService.addLike(film2.getId(), user1.getId());
 
-        filmService.addLike(film_a.getId(), user2.getId());
+        filmService.addLike(film1.getId(), user2.getId());
 
         Collection<Film> recommendations = userService.recommendFilms(user2.getId());
 
         assertNotNull(recommendations);
-        Film finalFilm_b = film_b;
-        assertTrue(recommendations.stream().anyMatch(f -> f.getId().equals(finalFilm_b.getId())));
+        Film film3 = film2;
+        assertTrue(recommendations.stream().anyMatch(f -> f.getId().equals(film3.getId())));
     }
 
     @Test
