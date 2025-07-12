@@ -76,4 +76,9 @@ public class UserService {
         log.trace("Подбираются рекомендации для пользователя с id: {}.",userId);
         return filmStorage.recommendFilms(userId);
     }
+
+    public void removeUser(int id) {
+        log.info("Обрабатываем запрос на удаление пользователя (id): {}", id);
+        storage.removeUser(id);
+    }
 }
