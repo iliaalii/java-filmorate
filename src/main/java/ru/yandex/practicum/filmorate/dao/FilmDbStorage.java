@@ -194,6 +194,7 @@ public class FilmDbStorage implements FilmStorage {
             log.trace("Рекомендаций для пользователя с id: {} не найдено.", userId);
             return List.of();
         }
+    }
 
     public void removeFilm(int filmId) {
         int affected = jdbc.update(REMOVE_FILM_QUERY, filmId);

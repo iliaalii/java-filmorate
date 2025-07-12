@@ -73,7 +73,7 @@ public class UserService {
     }
 
     public Collection<Film> recommendFilms(final long userId) {
-        log.trace("Подбираются рекомендации для пользователя с id: {}.",userId);
+        log.trace("Подбираются рекомендации для пользователя с id: {}.", userId);
         return filmStorage.recommendFilms(userId);
     }
 
