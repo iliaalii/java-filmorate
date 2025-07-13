@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
@@ -11,6 +11,8 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -22,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FilmService {
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
@@ -29,6 +32,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final RatingDbStorage ratingStorage;
     private final GenreDbStorage genreStorage;
+
     private final DirectorDbStorage directorStorage;
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
@@ -42,6 +46,12 @@ public class FilmService {
         this.genreStorage = genreStorage;
         this.directorStorage = directorStorage;
     }
+
+    private final EventService eventService;
+
+    private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
+
+
 
     public Collection<Film> findAll() {
         log.info("Обрабатываем запрос на поиск всех фильмов");
@@ -70,6 +80,7 @@ public class FilmService {
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.addLike(id, userId);
         }
+        eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.ADD);
     }
 
     public void removeLike(int id, int userId) {
@@ -77,16 +88,32 @@ public class FilmService {
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.removeLike(id, userId);
         }
+        eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.REMOVE);
     }
 
-    public Collection<Film> getPopularFilms(Integer count) {
-        log.info("Обрабатываем запрос на вывод популярных фильмов");
-        return List.copyOf(filmStorage.findAll().stream()
-                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
+    public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
+        log.info("Обрабатывается запрос популярных фильмов по жанру {} и/или году {}", genreId, year);
+        return filmStorage.getPopularFilms(count, genreId, year);
+    }
+
+    public List<Film> getCommonFilms(final int id, final int userId) {
+        log.trace("Получение общих фильмов пользователей с id {} и {}.", id, userId);
+
+        List<Film> films = filmStorage.getCommonFilms(id, userId);
+        Map<Integer, Set<Genre>> filmsGenres = genreStorage.getFilmsGenres(filmStorage.getCommonFilms(id, userId)
+                .stream()
+                .map(Film::getId)
                 .toList());
+
+        return films.stream()
+                .peek(film -> film.setGenres(filmsGenres.get(film.getId())))
+                .toList();
     }
 
+    public void removeFilm(int filmId) {
+        log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
+        filmStorage.removeFilm(filmId);
+    }
 
     private void validationFilm(Film film) {
         log.info("Проводим проверку валидности");

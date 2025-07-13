@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
@@ -72,7 +73,23 @@ public class FilmController {
 
     @GetMapping("/popular")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") @Positive Integer count) {
-        return service.getPopularFilms(count);
+    public Collection<Film> getPopularFilms(
+            @RequestParam(defaultValue = "10") @Positive final Integer count,
+            @RequestParam(required = false) @Positive final Integer genreId,
+            @RequestParam(required = false) @Positive final Integer year) {
+        return service.getPopularFilms(count, genreId, year);
+
+    }
+
+    @DeleteMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFilm(@PathVariable int filmId) {
+        service.removeFilm(filmId);
+    }
+
+    @GetMapping("/common")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getCommonFilms(@RequestParam final int userId, @RequestParam final int friendId) {
+        return service.getCommonFilms(userId, friendId);
     }
 }
