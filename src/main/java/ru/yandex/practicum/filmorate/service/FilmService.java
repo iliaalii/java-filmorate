@@ -82,7 +82,7 @@ public class FilmService {
                 .limit(count)
                 .toList();
     }
-  
+
     public List<Film> getCommonFilms(final int id, final int userId) {
         log.trace("Получение общих фильмов пользователей с id {} и {}.", id, userId);
 
