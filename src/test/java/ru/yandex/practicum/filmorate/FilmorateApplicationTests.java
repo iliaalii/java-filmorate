@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         UserDbStorage.class, UserRowMapper.class,
         FilmDbStorage.class, FilmRowMapper.class,
         GenreDbStorage.class, GenreRowMapper.class,
-        RatingDbStorage.class, RatingRowMapper.class, 
+        RatingDbStorage.class, RatingRowMapper.class,
   FilmService.class, ReviewDbStorage.class, ReviewRowMapper.class
 })
 class FilmorateApplicationTests {
@@ -45,9 +45,6 @@ class FilmorateApplicationTests {
     User user;
     Film film, film1, film2, film3;
     Review review;
-    
-  @Autowired
-    private UserDbStorage userDbStorage;
 
     @BeforeEach
     void setup() {
@@ -87,7 +84,7 @@ class FilmorateApplicationTests {
         filmStorage.create(film1);
         filmStorage.create(film2);
         filmStorage.create(film3);
-  
+
         review = new Review();
         review.setContent("тестовый отзыв");
         review.setIsPositive(true);
@@ -308,5 +305,4 @@ class FilmorateApplicationTests {
                         assertThat(r).hasFieldOrPropertyWithValue("useful", 1)
                 );
     }
-  
 }
