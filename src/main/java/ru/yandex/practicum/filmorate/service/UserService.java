@@ -23,7 +23,7 @@ public class UserService {
     private final EventService eventService;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
-  
+
 
     public Collection<User> findAll() {
         log.info("Обрабатываем запрос на поиск всех пользователей");
