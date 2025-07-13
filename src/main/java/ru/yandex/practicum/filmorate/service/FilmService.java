@@ -82,6 +82,25 @@ public class FilmService {
                 .limit(count)
                 .toList();
     }
+  
+    public List<Film> getCommonFilms(final int id, final int userId) {
+        log.trace("Получение общих фильмов пользователей с id {} и {}.", id, userId);
+
+        List<Film> films = filmStorage.getCommonFilms(id, userId);
+        Map<Integer, Set<Genre>> filmsGenres = genreStorage.getFilmsGenres(filmStorage.getCommonFilms(id, userId)
+                .stream()
+                .map(Film::getId)
+                .toList());
+
+        return films.stream()
+                .peek(film -> film.setGenres(filmsGenres.get(film.getId())))
+                .toList();
+    }
+
+    public void removeFilm(int filmId) {
+        log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
+        filmStorage.removeFilm(filmId);
+    }
 
     private void validationFilm(Film film) {
         log.info("Проводим проверку валидности");

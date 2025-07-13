@@ -65,4 +65,10 @@ public class UserController {
     public Collection<User> findCommonFriends(@PathVariable @Positive int id, @PathVariable @Positive int otherId) {
         return service.findCommonFriends(id, otherId);
     }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeUser(@PathVariable int userId) {
+        service.removeUser(userId);
+    }
 }
