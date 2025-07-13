@@ -72,15 +72,9 @@ public class FilmService {
         }
     }
 
-    public Collection<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
-        log.info("Обрабатываем запрос на вывод популярных фильмов c использованием фильтров по жанру {} и/или году {}", genreId, year);
-        return filmStorage.findAll().stream()
-                .filter(film -> (year == null || film.getReleaseDate().getYear() == year))
-                .filter(film -> (genreId == null || film.getGenres().stream()
-                        .anyMatch(g -> g.getId().equals(genreId))))
-                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
-                .toList();
+    public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
+        log.info("Обрабатывается запрос популярных фильмов по жанру {} и/или году {}", genreId, year);
+        return filmStorage.getPopularFilms(count, genreId, year);
     }
 
     public List<Film> getCommonFilms(final int id, final int userId) {

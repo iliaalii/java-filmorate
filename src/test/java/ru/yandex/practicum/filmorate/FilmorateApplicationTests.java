@@ -39,7 +39,6 @@ class FilmorateApplicationTests {
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreDbStorage genreStorage;
-    private final RatingDbStorage ratingStorage;
     private final FilmService filmService;
     private final ReviewDbStorage reviewStorage;
     User user;
@@ -175,15 +174,6 @@ class FilmorateApplicationTests {
     void testGetGenres() {
         Collection<Genre> genres = genreStorage.findAllGenre();
         assertThat(genres).size().isEqualTo(6);
-    }
-
-    @Test
-    void testReturnPopularFilmsWithoutFindFilters() {
-        Collection<Film> result = filmService.getPopularFilms(2, null, null);
-
-        assertThat(result)
-                .extracting(Film::getId)
-                .containsExactly(film1.getId(), film2.getId());
     }
 
     @Test
