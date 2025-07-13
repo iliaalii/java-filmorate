@@ -15,14 +15,15 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -32,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         FilmDbStorage.class, FilmRowMapper.class,
         GenreDbStorage.class, GenreRowMapper.class,
         RatingDbStorage.class, RatingRowMapper.class,
-  FilmService.class, ReviewDbStorage.class, ReviewRowMapper.class
+        FilmService.class, ReviewDbStorage.class, ReviewRowMapper.class, EventRowMapper.class, EventDbStorage.class, EventService.class, DirectorDbStorage.class, DirectorRowMapper.class
 })
 class FilmorateApplicationTests {
     private final JdbcTemplate jdbc;

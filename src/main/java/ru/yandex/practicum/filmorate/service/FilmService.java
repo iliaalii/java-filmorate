@@ -3,10 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
@@ -16,20 +18,23 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FilmService {
+    private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final RatingDbStorage ratingStorage;
     private final GenreDbStorage genreStorage;
     private final EventService eventService;
-
-    private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
+    private final DirectorDbStorage directorStorage;
 
 
     public Collection<Film> findAll() {
@@ -120,5 +125,28 @@ public class FilmService {
                 throw new NotFoundException("Указаны не существующие жанры: " + genreId);
             }
         }
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            for (Director director : film.getDirectors()) {
+                try {
+                    directorStorage.findDirector(director.getId());
+                } catch (NotFoundException e) {
+                    throw new ValidationException("Указан несуществующий режиссер: " + director.getId());
+                }
+            }
+        }
     }
+
+    public Collection<Film> sortDirector(int directorId, String sortBy) {
+        if (sortBy.equals("year")) {
+            log.info("Проводим сортировку фильмов по году");
+            return filmStorage.sortDirectorByYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            log.info("Проводим сортировку фильмов по лайкам");
+            return filmStorage.sortDirectorByLikes(directorId);
+        } else {
+            throw new IllegalArgumentException("Неверный sortBy параметр: " + sortBy);
+        }
+
+    }
+
 }

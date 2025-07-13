@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +25,16 @@ public class FilmController {
         return service.findAll();
     }
 
+    @GetMapping("/director/{directorId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> findAllSortDirector(
+            @PathVariable("directorId") int directorId,
+            @RequestParam String sortBy) {
+
+        return service.sortDirector(directorId,sortBy);
+    }
+
+
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Film findFilm(@PathVariable @Positive int id) {
@@ -40,7 +49,7 @@ public class FilmController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Film update(@Valid @RequestBody Film newFilm) {
+    public Film update(@RequestBody Film newFilm) {
         return service.update(newFilm);
     }
 

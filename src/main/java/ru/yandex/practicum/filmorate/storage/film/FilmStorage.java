@@ -18,6 +18,11 @@ public interface FilmStorage {
 
     void removeLike(int id, int userId);
 
+
+    Collection<Film> sortDirectorByYear(int directorId);
+
+    Collection<Film> sortDirectorByLikes(int directorId);
+
     Collection<Film> recommendFilms(final long userId);
 
     void removeFilm(int filmId);
@@ -26,3 +31,4 @@ public interface FilmStorage {
 
     Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year);
 }
+
