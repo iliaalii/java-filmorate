@@ -20,8 +20,8 @@ public interface FilmStorage {
 
 
     Collection<Film> sortDirectorByYear(int directorId);
+
     Collection<Film> sortDirectorByLikes(int directorId);
-}
 
     Collection<Film> recommendFilms(final long userId);
 

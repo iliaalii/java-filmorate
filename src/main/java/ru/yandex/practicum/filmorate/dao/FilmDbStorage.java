@@ -29,7 +29,7 @@ import java.util.*;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class FilmDbStorage implements FilmStorage {
+public class FilmDbStorage  implements FilmStorage {
 
     private final JdbcTemplate jdbc;
     private final FilmRowMapper mapper;
@@ -71,11 +71,7 @@ public class FilmDbStorage implements FilmStorage {
             "JOIN Film_Directors fd ON d.director_id = fd.director_id WHERE fd.film_id = ?";
     private static final String FIND_ALL_DIRECTOR_QUERY = "SELECT d.*, fd.film_id FROM Directors d " +
             "JOIN Film_Directors fd ON d.director_id = fd.director_id";
-    private static final String CLEAR_DIRECTOR_BY_FILM_QUERY = "DELETE FROM Film_Directors WHERE film_id = ?";
-    private static final String ADD_DIRECTOR_BY_FILM_QUERY = "INSERT INTO Film_Directors (film_id, director_id) VALUES (?, ?)";
-    private final JdbcTemplate jdbc;
-    private final FilmRowMapper mapper;
-    private final RatingDbStorage rStorage;
+
     private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
 
     private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
@@ -255,7 +251,7 @@ public class FilmDbStorage implements FilmStorage {
             film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
         }
         return films;
-
+    }
       public Collection<Film> recommendFilms(final long userId) {
         log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
         try {
@@ -300,7 +296,7 @@ public class FilmDbStorage implements FilmStorage {
         log.info("Обновлен список жанров фильма (id): {}", filmId);
     }
 
-    private Map<Integer, Set<Genre>> findAllGenresByFilms() {
+        private Map<Integer, Set<Genre>> findAllGenresByFilms() {
         log.info("Поиск жанров для каждого фильма");
         return jdbc.query(FIND_ALL_GENRE_QUERY, rs -> {
             Map<Integer, Set<Genre>> map = new HashMap<>();
@@ -391,5 +387,5 @@ public class FilmDbStorage implements FilmStorage {
     }
 }
 
-}
+
 

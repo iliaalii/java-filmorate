@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,25 +34,8 @@ public class FilmService {
     private final UserStorage userStorage;
     private final RatingDbStorage ratingStorage;
     private final GenreDbStorage genreStorage;
-
-    private final DirectorDbStorage directorStorage;
-
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       @Qualifier("userDbStorage") UserStorage userStorage,
-                       RatingDbStorage ratingStorage,
-                       GenreDbStorage genreStorage,
-                       DirectorDbStorage directorStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.ratingStorage = ratingStorage;
-        this.genreStorage = genreStorage;
-        this.directorStorage = directorStorage;
-    }
-
     private final EventService eventService;
-
-    private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
-
+    private final DirectorDbStorage directorStorage;
 
 
     public Collection<Film> findAll() {

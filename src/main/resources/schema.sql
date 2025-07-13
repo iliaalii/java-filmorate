@@ -64,14 +64,11 @@ CREATE TABLE IF NOT EXISTS Likes (
   user_id INTEGER NOT NULL,
   PRIMARY KEY (film_id, user_id),
 
-  FOREIGN KEY (film_id) REFERENCES Films(film_id),
-  FOREIGN KEY (user_id) REFERENCES Users(user_id)
-);
-
-
   FOREIGN KEY (film_id) REFERENCES Films(film_id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
+
+
 
 CREATE TABLE IF NOT EXISTS Reviews (
   review_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
