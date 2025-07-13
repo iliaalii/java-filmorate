@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -18,8 +20,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
+    private final EventService eventService;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+
 
     public Collection<User> findAll() {
         log.info("Обрабатываем запрос на поиск всех пользователей");
@@ -46,6 +50,7 @@ public class UserService {
         if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
             userStorage.addFriend(id, friendId);
         }
+        eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.ADD);
     }
 
     public void removeFriend(int id, int friendId) {
@@ -53,6 +58,7 @@ public class UserService {
         if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
             userStorage.removeFriend(id, friendId);
         }
+        eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.REMOVE);
     }
 
     public Collection<User> findFriends(int id) {

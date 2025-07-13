@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -25,6 +27,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final RatingDbStorage ratingStorage;
     private final GenreDbStorage genreStorage;
+    private final EventService eventService;
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
 
@@ -56,6 +59,7 @@ public class FilmService {
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.addLike(id, userId);
         }
+        eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.ADD);
     }
 
     public void removeLike(int id, int userId) {
@@ -63,6 +67,7 @@ public class FilmService {
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.removeLike(id, userId);
         }
+        eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.REMOVE);
     }
 
     public List<Film> getCommonFilms(final int id, final int userId) {
