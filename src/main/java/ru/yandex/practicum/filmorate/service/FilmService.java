@@ -136,13 +136,17 @@ public class FilmService {
         }
     }
 
-    public Collection<Film> sortDirectorByYear(int directorId) {
-        log.info("Проводим сортировку фильмов по году");
-        return filmStorage.sortDirectorByYear(directorId);
+    public Collection<Film> sortDirector(int directorId, String sortBy) {
+        if (sortBy.equals("year")) {
+            log.info("Проводим сортировку фильмов по году");
+            return filmStorage.sortDirectorByYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            log.info("Проводим сортировку фильмов по лайкам");
+            return filmStorage.sortDirectorByLikes(directorId);
+        } else {
+            throw new IllegalArgumentException("Неверный sortBy параметр: " + sortBy);
+        }
+
     }
 
-    public Collection<Film> sortDirectorByLikes(int directorId) {
-        log.info("Проводим сортировку фильмов по лайкам");
-        return filmStorage.sortDirectorByLikes(directorId);
-    }
 }

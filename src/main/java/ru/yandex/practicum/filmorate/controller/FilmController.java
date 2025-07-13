@@ -31,13 +31,7 @@ public class FilmController {
             @PathVariable("directorId") int directorId,
             @RequestParam String sortBy) {
 
-        if (sortBy.equals("year")) {
-            return service.sortDirectorByYear(directorId);
-        } else if (sortBy.equals("likes")) {
-            return service.sortDirectorByLikes(directorId);
-        } else {
-            throw new IllegalArgumentException("Неверный sortBy параметр: " + sortBy);
-        }
+        return service.sortDirector(directorId,sortBy);
     }
 
 
