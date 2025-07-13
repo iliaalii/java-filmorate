@@ -29,12 +29,7 @@ import java.util.*;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class FilmDbStorage  implements FilmStorage {
-
-    private final JdbcTemplate jdbc;
-    private final FilmRowMapper mapper;
-    private final RatingDbStorage ratingStorage;
-
+public class FilmDbStorage implements FilmStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM Films";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Films WHERE film_id = ?";
@@ -54,7 +49,6 @@ public class FilmDbStorage  implements FilmStorage {
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id WHERE fg.film_id = ?";
     private static final String FIND_ALL_GENRE_QUERY = "SELECT g.*, fg.film_id FROM Genres g " +
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id";
-
     private static final String FIND_ALL_FILM_SORT_BY_YEAR =
             "SELECT f.* FROM Films f " +
                     "JOIN Film_Directors fd ON f.film_id = fd.film_id " +
@@ -71,15 +65,12 @@ public class FilmDbStorage  implements FilmStorage {
             "JOIN Film_Directors fd ON d.director_id = fd.director_id WHERE fd.film_id = ?";
     private static final String FIND_ALL_DIRECTOR_QUERY = "SELECT d.*, fd.film_id FROM Directors d " +
             "JOIN Film_Directors fd ON d.director_id = fd.director_id";
-
     private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
-
     private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
             " f.duration, f.rating_id FROM Films f" +
             " JOIN Likes l1 ON f.film_id = l1.film_id AND l1.user_id = ?" +
             " JOIN Likes l2 ON f.film_id = l2.film_id AND l2.user_id = ?" +
             " ORDER BY (SELECT COUNT(*) FROM Likes l WHERE l.film_id = f.film_id) DESC";
-
     private static final String GET_POPULAR_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
             " f.duration, f.rating_id, COUNT(l.user_id) AS likes_count FROM Films AS f " +
             "LEFT JOIN Likes l ON f.film_id = l.film_id LEFT JOIN Films_Genres fg ON f.film_id = fg.film_id " +
@@ -87,7 +78,6 @@ public class FilmDbStorage  implements FilmStorage {
             "WHERE (? IS NULL OR g.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
             "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
             "ORDER BY likes_count DESC LIMIT ?";
-
     private static final String RECOMMEND_FILMS_QUERY =
             "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
                     "FROM Films f " +
@@ -97,7 +87,9 @@ public class FilmDbStorage  implements FilmStorage {
                     "SELECT l2.user_id FROM Likes l1 JOIN Likes l2 ON l1.film_id = l2.film_id " +
                     "WHERE l1.user_id = ? AND l2.user_id != ? GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
                     "AND l2.film_id IS NULL";
-
+    private final JdbcTemplate jdbc;
+    private final FilmRowMapper mapper;
+    private final RatingDbStorage ratingStorage;
 
     @Override
     public Collection<Film> findAll() {
@@ -252,7 +244,8 @@ public class FilmDbStorage  implements FilmStorage {
         }
         return films;
     }
-      public Collection<Film> recommendFilms(final long userId) {
+
+    public Collection<Film> recommendFilms(final long userId) {
         log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
         try {
             return jdbc.query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
@@ -296,7 +289,7 @@ public class FilmDbStorage  implements FilmStorage {
         log.info("Обновлен список жанров фильма (id): {}", filmId);
     }
 
-        private Map<Integer, Set<Genre>> findAllGenresByFilms() {
+    private Map<Integer, Set<Genre>> findAllGenresByFilms() {
         log.info("Поиск жанров для каждого фильма");
         return jdbc.query(FIND_ALL_GENRE_QUERY, rs -> {
             Map<Integer, Set<Genre>> map = new HashMap<>();
