@@ -71,22 +71,12 @@ CREATE TABLE IF NOT EXISTS Review_Likes (
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Events (
+CREATE TABLE IF NOT EXISTS events (
   event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   event_time TIMESTAMP NOT NULL,
   user_id BIGINT NOT NULL,
-  event_type VARCHAR(10) NOT NULL,
-  operation VARCHAR(10) NOT NULL,
+  event_type_id TINYINT NOT NULL,
+  operation_type_id TINYINT NOT NULL,
   entity_id BIGINT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id)
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
-
-CREATE TABLE IF NOT EXISTS Events (
-  event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  event_time TIMESTAMP NOT NULL,
-  user_id BIGINT NOT NULL,
-  event_type VARCHAR(10) NOT NULL,
-  operation VARCHAR(10) NOT NULL,
-  entity_id BIGINT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id)
-)

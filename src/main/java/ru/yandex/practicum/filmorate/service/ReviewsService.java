@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDbStorage;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 
 import java.util.Collection;
 
@@ -20,8 +21,7 @@ public class ReviewsService {
     public Review add(Review review) {
         Review savedReview = storage.add(review);
 
-        eventService.createNowEvent(review.getUserId(), review.getReviewId(), Event.EventType.REVIEW,
-                Event.Operation.ADD);
+        eventService.createNowEvent(review.getUserId(), review.getReviewId(), EventType.REVIEW, OperationType.ADD);
 
         return savedReview;
     }
@@ -29,8 +29,7 @@ public class ReviewsService {
     public Review update(Review review) {
         Review savedReview = storage.update(review);
 
-        eventService.createNowEvent(review.getUserId(), review.getReviewId(), Event.EventType.REVIEW,
-                Event.Operation.UPDATE);
+        eventService.createNowEvent(review.getUserId(), review.getReviewId(), EventType.REVIEW, OperationType.UPDATE);
 
         return savedReview;
     }
@@ -38,8 +37,8 @@ public class ReviewsService {
     public void remove(int id) {
         Review savedReview = storage.findById(id);
 
-        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), Event.EventType.REVIEW,
-                Event.Operation.REMOVE);
+        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW,
+                OperationType.REMOVE);
 
         storage.remove(id);
     }

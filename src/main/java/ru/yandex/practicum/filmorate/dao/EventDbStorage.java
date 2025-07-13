@@ -18,27 +18,27 @@ public class EventDbStorage {
     private final JdbcTemplate jdbc;
     private final EventRowMapper eventRowMapper;
 
-    private static final String ADD_EVENT = "INSERT INTO Events (event_time, user_id, event_type, operation," +
-            " entity_id) VALUES (?, ?, ?, ?, ?)";
-    private static final String GET_USER_EVENTS = "SELECT event_id, event_time, user_id, event_type, operation," +
-            " entity_id FROM Events WHERE user_id = ?";
+    private static final String ADD_EVENT = "INSERT INTO events (event_time, user_id, event_type_id, " +
+            "operation_type_id, entity_id) VALUES (?, ?, ?, ?, ?)";
+    private static final String GET_USER_EVENTS = "SELECT event_id, event_time, user_id, event_type_id, " +
+            "operation_type_id, entity_id FROM events WHERE user_id = ?";
 
 
     public void addEvent(Event event) {
         jdbc.update(con -> {
-            log.info("Добавляется ивент.");
+            log.debug("Добавляется ивент.");
             PreparedStatement ps = con.prepareStatement(ADD_EVENT, Statement.RETURN_GENERATED_KEYS);
             ps.setTimestamp(1, event.getTimestamp());
             ps.setLong(2, event.getUserId());
-            ps.setString(3, event.getEventType().toString());
-            ps.setString(4, event.getOperation().toString());
+            ps.setInt(3, event.getEventType().getId());
+            ps.setInt(4, event.getOperation().getId());
             ps.setLong(5, event.getEntityId());
             return ps;
         });
     }
 
     public Collection<Event> getUserEvents(long id) {
-        log.trace("Возвращаются все ивенты пользователя с id: {}.", id);
+        log.debug("Возвращаются все ивенты пользователя с id: {}.", id);
         return jdbc.query(GET_USER_EVENTS, eventRowMapper, id);
     }
 }

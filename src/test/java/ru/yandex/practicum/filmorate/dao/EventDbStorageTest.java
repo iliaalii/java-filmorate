@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.dao.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.dao.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -42,8 +44,8 @@ class EventDbStorageTest {
         testEvent = Event.builder()
                 .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                 .userId(1L)
-                .eventType(Event.EventType.LIKE)
-                .operation(Event.Operation.ADD)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.ADD)
                 .entityId(100L)
                 .build();
     }

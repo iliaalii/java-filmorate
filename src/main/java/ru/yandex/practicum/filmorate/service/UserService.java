@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
@@ -45,7 +46,7 @@ public class UserService {
         if (storage.findUser(id) != null && storage.findUser(friendId) != null) {
             storage.addFriend(id, friendId);
         }
-        eventService.createNowEvent(id, friendId, Event.EventType.FRIEND, Event.Operation.ADD);
+        eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.ADD);
     }
 
     public void removeFriend(int id, int friendId) {
@@ -53,7 +54,7 @@ public class UserService {
         if (storage.findUser(id) != null && storage.findUser(friendId) != null) {
             storage.removeFriend(id, friendId);
         }
-        eventService.createNowEvent(id, friendId, Event.EventType.FRIEND, Event.Operation.REMOVE);
+        eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.REMOVE);
     }
 
     public Collection<User> findFriends(int id) {

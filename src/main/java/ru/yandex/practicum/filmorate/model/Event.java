@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 
 import java.sql.Timestamp;
 
@@ -16,17 +18,8 @@ public class Event {
     Timestamp timestamp;
     Long userId;
     EventType eventType;
-    Operation operation;
+    OperationType operation;
     Long entityId;
     @With
     Long eventId;
-
-
-    public enum EventType {
-        LIKE, REVIEW, FRIEND
-    }
-
-    public enum Operation {
-        REMOVE, ADD, UPDATE
-    }
 }
