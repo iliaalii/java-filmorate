@@ -68,7 +68,7 @@ public class FilmDbStorage implements FilmStorage {
             "WHERE (? IS NULL OR g.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
             "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
             "ORDER BY likes_count DESC LIMIT ?";
-  
+
     private static final String RECOMMEND_FILMS_QUERY =
             "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
                     "FROM Films f " +
