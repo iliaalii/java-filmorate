@@ -8,6 +8,19 @@ CREATE TABLE IF NOT EXISTS Genres (
   name VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS Directors (
+  director_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Film_Directors (
+  film_id INTEGER NOT NULL,
+  director_id INTEGER NOT NULL,
+  PRIMARY KEY (film_id, director_id),
+  FOREIGN KEY (film_id) REFERENCES Films(film_id) ON DELETE CASCADE,
+  FOREIGN KEY (director_id) REFERENCES Directors(director_id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS Films (
   film_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
@@ -15,9 +28,11 @@ CREATE TABLE IF NOT EXISTS Films (
   release_date DATE,
   duration INTEGER,
   rating_id INTEGER,
+  director_id INTEGER,
   CONSTRAINT films_duration_chk CHECK(duration > 0),
   CONSTRAINT films_release_date_chk CHECK(release_date >= DATE '1895-12-28'),
-  FOREIGN KEY (rating_id) REFERENCES Rating(rating_id)
+  FOREIGN KEY (rating_id) REFERENCES Rating(rating_id),
+  FOREIGN KEY (director_id) REFERENCES Directors(director_id)
 );
 
 CREATE TABLE IF NOT EXISTS Films_Genres (
@@ -51,3 +66,4 @@ CREATE TABLE IF NOT EXISTS Likes (
   FOREIGN KEY (film_id) REFERENCES Films(film_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+
