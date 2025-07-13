@@ -70,6 +70,11 @@ public class FilmService {
         eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.REMOVE);
     }
 
+    public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
+        log.info("Обрабатывается запрос популярных фильмов по жанру {} и/или году {}", genreId, year);
+        return filmStorage.getPopularFilms(count, genreId, year);
+    }
+
     public List<Film> getCommonFilms(final int id, final int userId) {
         log.trace("Получение общих фильмов пользователей с id {} и {}.", id, userId);
 
@@ -82,14 +87,6 @@ public class FilmService {
         return films.stream()
                 .peek(film -> film.setGenres(filmsGenres.get(film.getId())))
                 .toList();
-    }
-
-    public Collection<Film> getPopularFilms(Integer count) {
-        log.info("Обрабатываем запрос на вывод популярных фильмов");
-        return List.copyOf(filmStorage.findAll().stream()
-                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
-                .toList());
     }
 
     public void removeFilm(int filmId) {

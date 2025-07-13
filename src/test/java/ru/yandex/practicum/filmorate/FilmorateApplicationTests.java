@@ -15,10 +15,10 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,20 +32,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         FilmDbStorage.class, FilmRowMapper.class,
         GenreDbStorage.class, GenreRowMapper.class,
         RatingDbStorage.class, RatingRowMapper.class,
-        ReviewDbStorage.class, ReviewRowMapper.class
+  FilmService.class, ReviewDbStorage.class, ReviewRowMapper.class
 })
 class FilmorateApplicationTests {
     private final JdbcTemplate jdbc;
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreDbStorage genreStorage;
+    private final FilmService filmService;
     private final ReviewDbStorage reviewStorage;
-
     User user;
-    Film film;
+    Film film, film1, film2, film3;
     Review review;
-    @Autowired
-    private UserDbStorage userDbStorage;
 
     @BeforeEach
     void setup() {
@@ -54,10 +52,37 @@ class FilmorateApplicationTests {
         user.setEmail("test@mail.com");
         user.setBirthday(LocalDate.now());
 
+        Collection<Genre> genres = genreStorage.findAllGenre();
+        List<Genre> genreList = new ArrayList<>(genres);
+        Genre firstGenre = genreList.get(0);
+        Genre fourthGenre = genreList.get(3);
+
         film = new Film();
         film.setName("test");
         film.setDuration(50);
         film.setReleaseDate(LocalDate.now());
+
+        film1 = new Film();
+        film1.setName("Академия чудес");
+        film1.setDuration(120);
+        film1.setReleaseDate(LocalDate.of(2021, 3, 10));
+        film1.setGenres(Set.of(firstGenre));
+
+        film2 = new Film();
+        film2.setName("Академия чудес 2");
+        film2.setDuration(120);
+        film2.setReleaseDate(LocalDate.of(2021, 12, 10));
+        film2.setGenres(Set.of(firstGenre));
+
+        film3 = new Film();
+        film3.setName("Закатные твари");
+        film3.setDuration(120);
+        film3.setReleaseDate(LocalDate.of(2023, 3, 21));
+        film3.setGenres(Set.of(fourthGenre));
+
+        filmStorage.create(film1);
+        filmStorage.create(film2);
+        filmStorage.create(film3);
 
         review = new Review();
         review.setContent("тестовый отзыв");
@@ -149,6 +174,33 @@ class FilmorateApplicationTests {
     void testGetGenres() {
         Collection<Genre> genres = genreStorage.findAllGenre();
         assertThat(genres).size().isEqualTo(6);
+    }
+
+    @Test
+    void testReturnMostPopularFilmsByYearFilter() {
+        Collection<Film> result = filmService.getPopularFilms(3, null, 2021);
+
+        assertThat(result)
+                .extracting(Film::getId)
+                .containsExactly(film1.getId(), film2.getId());
+    }
+
+    @Test
+    void testReturnMostPopularFilmsByGenreFilter() {
+        Collection<Film> result = filmService.getPopularFilms(3, 1, null);
+
+        assertThat(result)
+                .extracting(Film::getId)
+                .containsExactly(film1.getId(), film2.getId());
+    }
+
+    @Test
+    void testReturnMostPopularFilmsByGenreAndYearFilters() {
+        Collection<Film> result = filmService.getPopularFilms(3, 4, 2023);
+
+        assertThat(result)
+                .extracting(Film::getId)
+                .containsExactly(film3.getId());
     }
 
     @Test

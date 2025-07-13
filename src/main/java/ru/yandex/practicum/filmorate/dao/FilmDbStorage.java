@@ -61,6 +61,14 @@ public class FilmDbStorage implements FilmStorage {
             " JOIN Likes l2 ON f.film_id = l2.film_id AND l2.user_id = ?" +
             " ORDER BY (SELECT COUNT(*) FROM Likes l WHERE l.film_id = f.film_id) DESC";
 
+    private static final String GET_POPULAR_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
+            " f.duration, f.rating_id, COUNT(l.user_id) AS likes_count FROM Films AS f " +
+            "LEFT JOIN Likes l ON f.film_id = l.film_id LEFT JOIN Films_Genres fg ON f.film_id = fg.film_id " +
+            "LEFT JOIN Genres g ON fg.genre_id = g.genre_id " +
+            "WHERE (? IS NULL OR g.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
+            "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
+            "ORDER BY likes_count DESC LIMIT ?";
+
     private static final String RECOMMEND_FILMS_QUERY =
             "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
                     "FROM Films f " +
@@ -208,6 +216,10 @@ public class FilmDbStorage implements FilmStorage {
         log.trace("Получение общих фильмов из базы данных.");
         return jdbc.query(GET_COMMON_FILMS, mapper, id, friendId);
 
+    }
+
+    public Collection<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
+        return jdbc.query(GET_POPULAR_FILMS, mapper, genreId, genreId, year, year, count);
     }
 
     private void setFilmGenres(Integer filmId, Set<Genre> genres) {
