@@ -31,6 +31,7 @@ public class FilmService {
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
 
+
     public Collection<Film> findAll() {
         log.info("Обрабатываем запрос на поиск всех фильмов");
         return filmStorage.findAll();

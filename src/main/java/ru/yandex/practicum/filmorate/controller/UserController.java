@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -73,6 +74,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<Event> getUserEvents(@PathVariable @Positive final long id) {
         return eventService.getUserEvents(id);
+    }
+
+    @GetMapping("/{userId}/recommendations")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> recommendFilms(@PathVariable @Positive final long userId) {
+        return service.recommendFilms(userId);
     }
 
     @DeleteMapping("/{userId}")
