@@ -43,6 +43,9 @@ class FilmorateApplicationTests {
     private final FilmService filmService;
     private final ReviewDbStorage reviewStorage;
     private final RatingDbStorage ratingStorage;
+    private final DirectorDbStorage directorStorage;
+
+    Director director;
     User user;
     Film film, film1, film2, film3;
     Review review;
@@ -88,6 +91,14 @@ class FilmorateApplicationTests {
         film3.setReleaseDate(LocalDate.of(2023, 3, 21));
         film3.setGenres(Set.of(fourthGenre));
         film3.setMpa(thirdRating);
+
+        director = new Director();
+        director.setName("Джеймс Кэмерон");
+        director = directorStorage.create(director);
+
+        film1.setDirectors(Set.of(director));
+        film2.setDirectors(Set.of(director));
+        film3.setDirectors(Set.of(director));
 
         filmStorage.create(film1);
         filmStorage.create(film2);
@@ -304,4 +315,68 @@ class FilmorateApplicationTests {
                         assertThat(r).hasFieldOrPropertyWithValue("useful", 1)
                 );
     }
+
+    @Test
+    void testSearchByTitle() {
+        List<Film> result = filmStorage.search("чудес", List.of("title"));
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(Film::getName)
+                .contains("Академия чудес", "Академия чудес 2");
+    }
+
+    @Test
+    void testSearchByDirector() {
+        List<Film> result = filmStorage.search("кэмерон", List.of("director"));
+
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(Film::getName)
+                .contains("Академия чудес", "Академия чудес 2", "Закатные твари");
+    }
+
+    @Test
+    void testSearchByTitleAndDirector() {
+        List<Film> result = filmStorage.search("академия", List.of("title", "director"));
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(Film::getName)
+                .contains("Академия чудес", "Академия чудес 2");
+    }
+
+    @Test
+    void testSearchReturnsEmptyList() {
+        List<Film> result = filmStorage.search("несуществующее", List.of("title"));
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testSearchInvalidByParameter() {
+        assertThatThrownBy(() -> filmStorage.search("abc", List.of("invalid")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Параметр by должен содержать 'title' или 'director'");
+    }
+
+    @Test
+    void testSortDirectorByYear() {
+        List<Film> sorted = new ArrayList<>(filmStorage.sortDirectorByYear(director.getId()));
+
+        assertThat(sorted).hasSize(3);
+        assertThat(sorted).extracting(Film::getName)
+                .containsExactly("Академия чудес", "Академия чудес 2", "Закатные твари");
+    }
+
+    @Test
+    void testSortDirectorByLikes() {
+        // проставим лайки
+        user = userStorage.create(user);
+        filmStorage.addLike(film3.getId(), user.getId()); // Закатные твари — 1 лайк
+        filmStorage.addLike(film3.getId(), userStorage.create(user).getId()); // +1 = 2 лайка
+        filmStorage.addLike(film2.getId(), userStorage.create(user).getId()); // Академия чудес 2 — 1 лайк
+
+        List<Film> sorted = new ArrayList<>(filmStorage.sortDirectorByLikes(director.getId()));
+        assertThat(sorted).hasSize(3);
+        assertThat(sorted).extracting(Film::getName)
+                .containsExactly("Закатные твари", "Академия чудес 2", "Академия чудес");
+    }
+
 }

@@ -30,6 +30,9 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
+    private final JdbcTemplate jdbc;
+    private final FilmRowMapper mapper;
+    private final RatingDbStorage ratingStorage;
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM Films";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Films WHERE film_id = ?";
@@ -87,9 +90,6 @@ public class FilmDbStorage implements FilmStorage {
                     "SELECT l2.user_id FROM Likes l1 JOIN Likes l2 ON l1.film_id = l2.film_id " +
                     "WHERE l1.user_id = ? AND l2.user_id != ? GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
                     "AND l2.film_id IS NULL";
-    private final JdbcTemplate jdbc;
-    private final FilmRowMapper mapper;
-    private final RatingDbStorage ratingStorage;
 
     @Override
     public Collection<Film> findAll() {
