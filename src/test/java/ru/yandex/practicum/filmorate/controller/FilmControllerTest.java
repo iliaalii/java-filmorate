@@ -9,6 +9,7 @@ import org.springframework.http.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -143,7 +144,9 @@ class FilmControllerTest {
                 "name", "SuperFilm",
                 "description", "filmDescription",
                 "duration", 120,
-                "releaseDate", "2025-07-10"
+                "releaseDate", "2025-07-10",
+                "mpa", Map.of("id", 4),
+                "genres", List.of(Map.of("id", 1))
         );
 
         int filmId = (int) Objects.requireNonNull(restTemplate.postForEntity("/films", filmRequest, Map.class)
