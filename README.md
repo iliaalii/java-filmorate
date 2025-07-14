@@ -3,7 +3,7 @@
 ## Диаграмма для p2p проверки
 ![изображение](ErDiagram.png)
 
-* [Ссылка]([https://app.quickdatabasediagrams.com/#/d/i89NpA](https://dbdiagram.io/d/68758072f413ba3508d799f9)) на диограмму.
+* [Ссылка](https://dbdiagram.io/d/68758072f413ba3508d799f9) на диограмму.
 * [Скрипт](ER-diagram/QuickDBD-12_sprint.sql) базы данных в SQL на основе H2.
 
 ## Примеры запросов к контроллерам с выгрузкой данных
