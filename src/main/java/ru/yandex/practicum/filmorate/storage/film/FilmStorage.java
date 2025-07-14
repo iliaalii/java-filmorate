@@ -18,6 +18,7 @@ public interface FilmStorage {
 
     void removeLike(int id, int userId);
 
+    List<Film> search(String query, List<String> by);
 
     Collection<Film> sortDirectorByYear(int directorId);
 
@@ -31,4 +32,3 @@ public interface FilmStorage {
 
     Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year);
 }
-

@@ -132,7 +132,6 @@ public class FilmDbStorage implements FilmStorage {
     public Film create(Film film) {
         log.info("Добавляем новый фильм");
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-
         try {
             jdbc.update(con -> {
                 PreparedStatement ps = con.prepareStatement(CREATE_QUERY, Statement.RETURN_GENERATED_KEYS);
@@ -151,43 +150,43 @@ public class FilmDbStorage implements FilmStorage {
             throw new ValidationException("Ошибка валидации при сохранении в БД");
         }
 
-
         Integer id = keyHolder.getKeyAs(Integer.class);
-        if (id != null) {
-            if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-                setFilmGenres(id, film.getGenres());
-            }
-            if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-                setFilmDirectors(film);
-            }
-            film.setId(id);
-            log.info("Создан фильм с id: {}", id);
-            return film;
-        } else {
+        if (id == null) {
             throw new DataConflictException("Не удалось сохранить данные");
         }
+        film.setId(id);
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            setFilmGenres(id, film.getGenres());
+        }
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            setFilmDirectors(film);
+        }
+        log.info("Создан фильм с id: {}", id);
+        return film;
     }
+
 
     @Override
     public Film update(Film newFilm) {
-        log.info("Обновляем фильм");
+        log.info("Обновляем фильм id={}", newFilm.getId());
         try {
-            int rowsUpdated = jdbc.update(UPDATE_QUERY,
+            int rows = jdbc.update(
+                    UPDATE_QUERY,
                     newFilm.getName(),
                     newFilm.getDescription(),
                     Date.valueOf(newFilm.getReleaseDate()),
                     newFilm.getDuration(),
                     newFilm.getMpa() != null ? newFilm.getMpa().getId() : null,
-                    newFilm.getId());
-            if (rowsUpdated == 0) {
-                throw new NotFoundException("Фильм с id=" + newFilm.getId() + " не найден");
+                    newFilm.getId()
+            );
+            if (rows == 0) {
+                throw new DataConflictException("Фильм с id=" + newFilm.getId() + " не найден");
             }
             setFilmGenres(newFilm.getId(), newFilm.getGenres());
             setFilmDirectors(newFilm);
-            log.info("Обновлен фильм под id: {}", newFilm.getId());
             return findFilm(newFilm.getId());
         } catch (DataIntegrityViolationException e) {
-            throw new ValidationException("Ошибка валидации при сохранении в БД: " + e.getMessage());
+            throw new ValidationException("Ошибка валидации при сохранении: " + e.getMessage());
         }
     }
 
@@ -378,7 +377,54 @@ public class FilmDbStorage implements FilmStorage {
         }
         log.info("Обновлен список режиссеров фильма (id): {}", film.getId());
     }
+
+    @Override
+    public List<Film> search(String query, List<String> by) {
+        boolean byTitle    = by.contains("title");
+        boolean byDirector = by.contains("director");
+        if (!byTitle && !byDirector) {
+            throw new IllegalArgumentException("Параметр by должен содержать 'title' или 'director'");
+        }
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT f.*, COUNT(l.user_id) AS likes_count " +
+                        "FROM Films f " +
+                        "LEFT JOIN Likes l ON f.film_id = l.film_id "
+        );
+        if (byDirector) {
+            sql.append("LEFT JOIN Film_Directors fd ON f.film_id = fd.film_id ")
+                    .append("LEFT JOIN Directors d ON d.director_id = fd.director_id ");
+        }
+        sql.append("WHERE ");
+
+        List<Object> params = new ArrayList<>();
+        String p = "%" + query.toLowerCase() + "%";
+        List<String> cond = new ArrayList<>();
+        if (byTitle) {
+            cond.add("LOWER(f.name) LIKE ?");
+            params.add(p);
+        }
+        if (byDirector) {
+            cond.add("LOWER(d.name) LIKE ?");
+            params.add(p);
+        }
+        sql.append(String.join(" OR ", cond));
+        sql.append(" GROUP BY f.film_id ORDER BY likes_count DESC");
+
+        List<Film> films = jdbc.query(sql.toString(), mapper, params.toArray());
+
+        // Дозаполняем плэйлисты
+        Map<Integer, Set<Integer>> likesMap       = findAllLikes();
+        Map<Integer, Set<Genre>>    genresMap     = findAllGenresByFilms();
+        Map<Integer, Set<Director>> directorsMap  = findAllDirectorsByFilms();
+        Map<Integer, Rating>        ratingMap     = findAllRatingsByFilm();
+
+        for (Film f : films) {
+            f.setLikes(likesMap.getOrDefault(f.getId(), Set.of()));
+            f.setGenres(genresMap.getOrDefault(f.getId(), Set.of()));
+            f.setDirectors(directorsMap.getOrDefault(f.getId(), Set.of()));
+            f.setMpa(ratingMap.getOrDefault(f.getId(), null));
+        }
+        return films;
+    }
 }
-
-
-

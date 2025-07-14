@@ -18,10 +18,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -136,13 +133,25 @@ public class FilmService {
         }
     }
 
-    public Collection<Film> sortDirectorByYear(int directorId) {
-        log.info("Проводим сортировку фильмов по году");
-        return filmStorage.sortDirectorByYear(directorId);
+    public Collection<Film> sortDirector(int directorId, String sortBy) {
+        if (sortBy.equals("year")) {
+            log.info("Проводим сортировку фильмов по году");
+            return filmStorage.sortDirectorByYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            log.info("Проводим сортировку фильмов по лайкам");
+            return filmStorage.sortDirectorByLikes(directorId);
+        } else {
+            throw new ValidationException("Неверный параметр sortBy: " + sortBy);
+        }
+
+    }
+    public List<Film> search(String query, String by) {
+        log.info("Поиск фильмов по '{}' в: {}", query, by);
+        var criteria = Arrays.stream(by.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .toList();
+        return filmStorage.search(query, criteria);
     }
 
-    public Collection<Film> sortDirectorByLikes(int directorId) {
-        log.info("Проводим сортировку фильмов по лайкам");
-        return filmStorage.sortDirectorByLikes(directorId);
-    }
 }
