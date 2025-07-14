@@ -35,6 +35,7 @@ public class FilmService {
     private final DirectorDbStorage directorStorage;
     private final GenreService genreService;
     private final RatingService ratingService;
+    private final DirectorService directorService;
 
 
     public Collection<Film> findAll() {
@@ -156,10 +157,14 @@ public class FilmService {
     public Collection<Film> enrichFilms(final Collection<Film> films) {
         Map<Integer, Rating> ratingMap = ratingService.findAllRatingsByFilm();
         Map<Integer, Set<Genre>> genresByFilmS = genreService.findAllGenresByFilms();
+        Map<Integer, Set<Director>> directorsMap = directorService.findAllDirectorsByFilms();
+        Map<Integer, Set<Integer>> likesMap = filmStorage.findAllLikes();
 
         for (Film film : films) {
             film.setGenres(genresByFilmS.getOrDefault(film.getId(), Set.of()));
             film.setMpa(ratingMap.getOrDefault(film.getId(), null));
+            film.setDirectors(directorsMap.getOrDefault(film.getId(), Set.of()));
+            film.setLikes(likesMap.getOrDefault(film.getId(), Set.of()));
         }
 
         return films;

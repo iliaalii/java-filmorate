@@ -4,6 +4,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface FilmStorage {
     Collection<Film> findAll();
@@ -31,4 +33,6 @@ public interface FilmStorage {
     List<Film> getCommonFilms(final int id, final int friendId);
 
     Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year);
+
+    Map<Integer, Set<Integer>> findAllLikes();
 }

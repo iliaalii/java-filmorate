@@ -59,8 +59,6 @@ public class FilmDbStorage implements FilmStorage {
                     "ORDER BY l.likes_count DESC";
     private static final String FIND_DIRECTOR_BY_FILM_QUERY = "SELECT d.* FROM Directors d " +
             "JOIN Film_Directors fd ON d.director_id = fd.director_id WHERE fd.film_id = ?";
-    private static final String FIND_ALL_DIRECTOR_QUERY = "SELECT d.*, fd.film_id FROM Directors d " +
-            "JOIN Film_Directors fd ON d.director_id = fd.director_id";
     private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
     private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
             " f.duration, f.rating_id FROM Films f" +
@@ -90,16 +88,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> findAll() {
         log.info("Поиск всех фильмов");
-        Collection<Film> films = jdbc.query(FIND_ALL_QUERY, mapper);
-
-        Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
-
-        for (Film film : films) {
-            film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
-        }
-        return films;
+        return jdbc.query(FIND_ALL_QUERY, mapper);
     }
 
     @Override
@@ -159,7 +148,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
 
-
     @Override
     public Film update(Film newFilm) {
         log.info("Обновляем фильм");
@@ -202,31 +190,13 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> sortDirectorByYear(int directorId) {
         log.info("Поиск всех фильмов одного режиссера отсортированный по году");
-        Collection<Film> films = jdbc.query(FIND_ALL_FILM_SORT_BY_YEAR, mapper, directorId);
-
-        Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
-
-        for (Film film : films) {
-            film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
-        }
-        return films;
+        return jdbc.query(FIND_ALL_FILM_SORT_BY_YEAR, mapper, directorId);
     }
 
     @Override
     public Collection<Film> sortDirectorByLikes(int directorId) {
         log.info("Поиск всех фильмов одного режиссера отсортированный по лайкам");
-        Collection<Film> films = jdbc.query(FIND_ALL_FILM_SORT_BY_LIKES, mapper, directorId);
-
-        Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
-
-        for (Film film : films) {
-            film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
-        }
-        return films;
+        return jdbc.query(FIND_ALL_FILM_SORT_BY_LIKES, mapper, directorId);
     }
 
     public Collection<Film> recommendFilms(final long userId) {
@@ -296,7 +266,7 @@ public class FilmDbStorage implements FilmStorage {
                 (rs, rowNum) -> rs.getInt("user_id"), id));
     }
 
-    private Map<Integer, Set<Integer>> findAllLikes() {
+    public Map<Integer, Set<Integer>> findAllLikes() {
         log.info("Поиск лайков для каждого фильма");
         return jdbc.query(FIND_ALL_LIKES, rs -> {
             Map<Integer, Set<Integer>> map = new HashMap<>();
@@ -317,21 +287,6 @@ public class FilmDbStorage implements FilmStorage {
     private Set<Genre> findGenresFilm(int id) {
         log.info("проводим поиск жанров для фильма");
         return new HashSet<>(jdbc.query(FIND_GENRE_BY_FILM_QUERY, new GenreRowMapper(), id));
-    }
-
-    private Map<Integer, Set<Director>> findAllDirectorsByFilms() {
-        log.info("Поиск режиссеров для каждого фильма");
-        return jdbc.query(FIND_ALL_DIRECTOR_QUERY, rs -> {
-            Map<Integer, Set<Director>> map = new HashMap<>();
-            while (rs.next()) {
-                int filmId = rs.getInt("film_id");
-                Director director = new Director();
-                director.setId(rs.getInt("director_id"));
-                director.setName(rs.getString("name"));
-                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(director);
-            }
-            return map;
-        });
     }
 
     private Set<Director> findDirectorsFilm(int id) {
@@ -383,15 +338,6 @@ public class FilmDbStorage implements FilmStorage {
         sql.append(String.join(" OR ", cond));
         sql.append(" GROUP BY f.film_id ORDER BY likes_count DESC");
 
-        List<Film> films = jdbc.query(sql.toString(), mapper, params.toArray());
-
-        Map<Integer, Set<Integer>> likesMap = findAllLikes();
-        Map<Integer, Set<Director>> directorsMap = findAllDirectorsByFilms();
-
-        for (Film f : films) {
-            f.setLikes(likesMap.getOrDefault(f.getId(), Set.of()));
-            f.setDirectors(directorsMap.getOrDefault(f.getId(), Set.of()));
-        }
-        return films;
+        return jdbc.query(sql.toString(), mapper, params.toArray());
     }
 }
