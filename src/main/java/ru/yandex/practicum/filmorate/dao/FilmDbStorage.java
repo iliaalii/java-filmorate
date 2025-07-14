@@ -37,8 +37,6 @@ public class FilmDbStorage implements FilmStorage {
             " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE Films SET name = ?,description = ?, release_date = ?," +
             " duration = ?, rating_id = ? WHERE film_id = ?";
-    private static final String FIND_ALL_RATINGS_BY_FILMS = "SELECT f.film_id, r.rating_id, r.name FROM Films f " +
-            "JOIN Rating r ON f.rating_id = r.rating_id";
     private static final String ADD_LIKE_QUERY = "MERGE INTO Likes (film_id, user_id) VALUES (?, ?)";
     private static final String REMOVE_LIKE_QUERY = "DELETE FROM Likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_LIKE_BY_FILM_QUERY = "SELECT user_id FROM Likes WHERE film_id = ?";
@@ -95,13 +93,11 @@ public class FilmDbStorage implements FilmStorage {
         Collection<Film> films = jdbc.query(FIND_ALL_QUERY, mapper);
 
         Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Rating> ratingByFilm = findAllRatingsByFilm();
         Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
 
         for (Film film : films) {
             film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
             film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
         }
         return films;
     }
@@ -210,12 +206,10 @@ public class FilmDbStorage implements FilmStorage {
 
         Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
         Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
-        Map<Integer, Rating> ratingByFilm = findAllRatingsByFilm();
 
         for (Film film : films) {
             film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
             film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
         }
         return films;
     }
@@ -227,12 +221,10 @@ public class FilmDbStorage implements FilmStorage {
 
         Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
         Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
-        Map<Integer, Rating> ratingByFilm = findAllRatingsByFilm();
 
         for (Film film : films) {
             film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
             film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
         }
         return films;
     }
@@ -322,21 +314,6 @@ public class FilmDbStorage implements FilmStorage {
         return ratingStorage.findRating(id);
     }
 
-    private Map<Integer, Rating> findAllRatingsByFilm() {
-        log.info("Поиск рейтинга для всех фильмов");
-        return jdbc.query(FIND_ALL_RATINGS_BY_FILMS, rs -> {
-            Map<Integer, Rating> map = new HashMap<>();
-            while (rs.next()) {
-                int filmId = rs.getInt("film_id");
-                Rating rating = new Rating();
-                rating.setId(rs.getInt("rating_id"));
-                rating.setName(rs.getString("name"));
-                map.put(filmId, rating);
-            }
-            return map;
-        });
-    }
-
     private Set<Genre> findGenresFilm(int id) {
         log.info("проводим поиск жанров для фильма");
         return new HashSet<>(jdbc.query(FIND_GENRE_BY_FILM_QUERY, new GenreRowMapper(), id));
@@ -410,12 +387,10 @@ public class FilmDbStorage implements FilmStorage {
 
         Map<Integer, Set<Integer>> likesMap = findAllLikes();
         Map<Integer, Set<Director>> directorsMap = findAllDirectorsByFilms();
-        Map<Integer, Rating> ratingMap = findAllRatingsByFilm();
 
         for (Film f : films) {
             f.setLikes(likesMap.getOrDefault(f.getId(), Set.of()));
             f.setDirectors(directorsMap.getOrDefault(f.getId(), Set.of()));
-            f.setMpa(ratingMap.getOrDefault(f.getId(), null));
         }
         return films;
     }

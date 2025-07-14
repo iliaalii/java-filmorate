@@ -7,6 +7,8 @@ import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,5 +24,9 @@ public class GenreService {
     public Collection<Genre> findAllGenre() {
         log.info("Обрабатываем запрос на поиск всех жанров");
         return storage.findAllGenre();
+    }
+
+    public Map<Integer, Set<Genre>> findAllGenresByFilms() {
+    return storage.findAllGenresByFilms();
     }
 }

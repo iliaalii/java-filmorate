@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.Collection;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,5 +23,9 @@ public class RatingService {
     public Collection<Rating> findAllRating() {
         log.info("Обрабатываем запрос на поиск всех рейтингов");
         return storage.findAllRating();
+    }
+
+    public Map<Integer, Rating> findAllRatingsByFilm() {
+        return storage.findAllRatingsByFilm();
     }
 }

@@ -33,6 +33,8 @@ public class FilmService {
     private final GenreDbStorage genreStorage;
     private final EventService eventService;
     private final DirectorDbStorage directorStorage;
+    private final GenreService genreService;
+    private final RatingService ratingService;
 
 
     public Collection<Film> findAll() {
@@ -152,15 +154,15 @@ public class FilmService {
     }
 
     public Collection<Film> enrichFilms(final Collection<Film> films) {
-
-        Map<Integer, Set<Genre>> genresByFilmS = genreStorage.findAllGenresByFilms();
+        Map<Integer, Rating> ratingMap = ratingService.findAllRatingsByFilm();
+        Map<Integer, Set<Genre>> genresByFilmS = genreService.findAllGenresByFilms();
 
         for (Film film : films) {
             film.setGenres(genresByFilmS.getOrDefault(film.getId(), Set.of()));
+            film.setMpa(ratingMap.getOrDefault(film.getId(), null));
         }
 
         return films;
     }
-
 }
 
