@@ -413,7 +413,6 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Film> films = jdbc.query(sql.toString(), mapper, params.toArray());
 
-        // Дозаполняем плэйлисты
         Map<Integer, Set<Integer>> likesMap = findAllLikes();
         Map<Integer, Set<Genre>> genresMap = findAllGenresByFilms();
         Map<Integer, Set<Director>> directorsMap = findAllDirectorsByFilms();
