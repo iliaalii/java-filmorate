@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.dao.DirectorRepository;
 import ru.yandex.practicum.filmorate.model.Director;
 
 import java.util.*;
@@ -12,7 +12,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class DirectorService {
-    private final DirectorDbStorage storage;
+    private final DirectorRepository storage;
 
     public Director findDirector(int id) {
         log.info("Обрабатываем запрос на поиск режиссера");

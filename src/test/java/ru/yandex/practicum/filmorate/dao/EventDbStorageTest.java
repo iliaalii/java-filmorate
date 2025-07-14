@@ -20,14 +20,14 @@ import java.util.Collection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
-@Import({EventDbStorage.class, EventRowMapper.class, UserDbStorage.class, UserRowMapper.class})
+@Import({EventRepository.class, EventRowMapper.class, UserRepository.class, UserRowMapper.class})
 class EventDbStorageTest {
 
     @Autowired
-    private EventDbStorage eventStorage;
+    private EventRepository eventStorage;
 
     @Autowired
-    private UserDbStorage userStorage;
+    private UserRepository userStorage;
 
     private User testUser;
     private Event testEvent;

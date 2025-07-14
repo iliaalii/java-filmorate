@@ -20,11 +20,11 @@ import java.util.Collection;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class ReviewDbStorage {
+public class RewiewRepository {
     private final JdbcTemplate jdbc;
     private final ReviewRowMapper mapper;
-    private final FilmDbStorage filmStorage;
-    private final UserDbStorage userStorage;
+    private final FilmRepository filmStorage;
+    private final UserRepository userStorage;
 
     private static final String ADD_QUERY = "INSERT INTO Reviews (film_id, user_id, content, is_positive) " +
             "VALUES (?, ?, ?, ?)";

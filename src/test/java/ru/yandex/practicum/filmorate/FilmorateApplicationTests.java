@@ -29,19 +29,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Import({
-        UserDbStorage.class, UserRowMapper.class,
-        FilmDbStorage.class, FilmRowMapper.class,
-        GenreDbStorage.class, GenreRowMapper.class,
-        RatingDbStorage.class, RatingRowMapper.class,
-        FilmService.class, ReviewDbStorage.class, ReviewRowMapper.class, EventRowMapper.class, EventDbStorage.class, EventService.class, DirectorDbStorage.class, DirectorRowMapper.class
+        UserRepository.class, UserRowMapper.class,
+        FilmRepository.class, FilmRowMapper.class,
+        GenreRepository.class, GenreRowMapper.class,
+        RatingRepository.class, RatingRowMapper.class,
+        FilmService.class, RewiewRepository.class, ReviewRowMapper.class, EventRowMapper.class, EventRepository.class, EventService.class, DirectorRepository.class, DirectorRowMapper.class
 })
 class FilmorateApplicationTests {
     private final JdbcTemplate jdbc;
-    private final UserDbStorage userStorage;
-    private final FilmDbStorage filmStorage;
-    private final GenreDbStorage genreStorage;
+    private final UserRepository userStorage;
+    private final FilmRepository filmStorage;
+    private final GenreRepository genreStorage;
     private final FilmService filmService;
-    private final ReviewDbStorage reviewStorage;
+    private final RewiewRepository reviewStorage;
     User user;
     Film film, film1, film2, film3;
     Review review;

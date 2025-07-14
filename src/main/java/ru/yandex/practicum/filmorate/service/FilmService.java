@@ -3,9 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.DirectorDbStorage;
-import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
-import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
+import ru.yandex.practicum.filmorate.dao.DirectorRepository;
+import ru.yandex.practicum.filmorate.dao.GenreRepository;
+import ru.yandex.practicum.filmorate.dao.RatingRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -29,10 +29,10 @@ public class FilmService {
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, Month.DECEMBER, 28);
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final RatingDbStorage ratingStorage;
-    private final GenreDbStorage genreStorage;
+    private final RatingRepository ratingStorage;
+    private final GenreRepository genreStorage;
     private final EventService eventService;
-    private final DirectorDbStorage directorStorage;
+    private final DirectorRepository directorStorage;
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
@@ -51,13 +51,17 @@ public class FilmService {
     public Film create(Film film) {
         log.info("Обрабатываем запрос на добавление фильма");
         validationFilm(film);
-        return enrichFilm(filmStorage.create(film));
+        Film createdFilm = filmStorage.create(film);
+        genreService.saveFilmGenre(createdFilm);
+        return enrichFilm(createdFilm);
     }
 
     public Film update(Film newFilm) {
         log.info("Обрабатываем запрос на обновление фильма");
         validationFilm(newFilm);
-        return enrichFilm(filmStorage.update(newFilm));
+        genreService.saveFilmGenre(newFilm);
+        Film updatedFilm = filmStorage.update(newFilm);
+        return enrichFilm(updatedFilm);
     }
 
     public void addLike(int id, int userId) {
@@ -176,6 +180,7 @@ public class FilmService {
 
     public Film enrichFilm(final Film film) {
         film.setDirectors(directorService.findDirectorsFilm(film.getId()));
+        film.setGenres(genreService.findGenresFilm(film.getId()));
         return film;
     }
 }

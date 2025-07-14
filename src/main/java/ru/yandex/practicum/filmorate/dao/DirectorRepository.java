@@ -20,7 +20,7 @@ import java.util.*;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class DirectorDbStorage {
+public class DirectorRepository {
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Directors WHERE director_id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM Directors";
     private static final String CREATE_QUERY = "INSERT INTO Directors (name) VALUES (?)";

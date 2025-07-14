@@ -16,7 +16,7 @@ import java.util.Map;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class RatingDbStorage {
+public class RatingRepository {
     private final JdbcTemplate jdbc;
     private final RatingRowMapper mapper;
 
