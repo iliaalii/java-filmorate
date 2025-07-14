@@ -22,9 +22,8 @@ public class GenreDbStorage {
 
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Genres WHERE genre_id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM Genres";
-    private static final String GET_FILMS_GENRES = "SELECT fg.film_id, g.genre_id, g.name " +
-                                                   "FROM Films_Genres fg JOIN Genres g ON fg.genre_id = g.genre_id " +
-                                                   "WHERE fg.film_id IN ";
+    private static final String FIND_ALL_GENRE_QUERY = "SELECT g.*, fg.film_id FROM Genres g " +
+            "JOIN Films_Genres fg ON g.genre_id = fg.genre_id";
 
     public Genre findGenre(int id) {
         try {
@@ -40,25 +39,18 @@ public class GenreDbStorage {
         return jdbc.query(FIND_ALL_QUERY, mapper);
     }
 
-    public Map<Integer, Set<Genre>> getFilmsGenres(final List<Integer> filmsId) {
-        if (filmsId.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        String idsInSql = filmsId.stream()
-                .map(id -> "?")
-                .collect(Collectors.joining(", ", "(", ")"));
-
-        return jdbc.query(GET_FILMS_GENRES + idsInSql, rs -> {
-            Map<Integer,Set<Genre>> genresMap = new HashMap<>();
+    public Map<Integer, Set<Genre>> findAllGenresByFilms() {
+        log.info("Поиск жанров для каждого фильма");
+        return jdbc.query(FIND_ALL_GENRE_QUERY, rs -> {
+            Map<Integer, Set<Genre>> map = new HashMap<>();
             while (rs.next()) {
                 int filmId = rs.getInt("film_id");
                 Genre genre = new Genre();
                 genre.setId(rs.getInt("genre_id"));
                 genre.setName(rs.getString("name"));
-                genresMap.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
             }
-            return genresMap;
-        }, filmsId.toArray());
+            return map;
+        });
     }
 }

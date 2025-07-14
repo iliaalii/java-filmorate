@@ -47,8 +47,6 @@ public class FilmDbStorage implements FilmStorage {
     private static final String ADD_GENRE_BY_FILM_QUERY = "INSERT INTO Films_Genres (film_id, genre_id) VALUES (?, ?)";
     private static final String FIND_GENRE_BY_FILM_QUERY = "SELECT g.* FROM Genres g " +
             "JOIN Films_Genres fg ON g.genre_id = fg.genre_id WHERE fg.film_id = ?";
-    private static final String FIND_ALL_GENRE_QUERY = "SELECT g.*, fg.film_id FROM Genres g " +
-            "JOIN Films_Genres fg ON g.genre_id = fg.genre_id";
     private static final String FIND_ALL_FILM_SORT_BY_YEAR =
             "SELECT f.* FROM Films f " +
                     "JOIN Film_Directors fd ON f.film_id = fd.film_id " +
@@ -97,13 +95,11 @@ public class FilmDbStorage implements FilmStorage {
         Collection<Film> films = jdbc.query(FIND_ALL_QUERY, mapper);
 
         Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Set<Genre>> genresByFilmS = findAllGenresByFilms();
         Map<Integer, Rating> ratingByFilm = findAllRatingsByFilm();
         Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
 
         for (Film film : films) {
             film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
-            film.setGenres(genresByFilmS.getOrDefault(film.getId(), Set.of()));
             film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
             film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
         }
@@ -213,12 +209,10 @@ public class FilmDbStorage implements FilmStorage {
         Collection<Film> films = jdbc.query(FIND_ALL_FILM_SORT_BY_YEAR, mapper, directorId);
 
         Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Set<Genre>> genresByFilm = findAllGenresByFilms();
         Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
         Map<Integer, Rating> ratingByFilm = findAllRatingsByFilm();
 
         for (Film film : films) {
-            film.setGenres(genresByFilm.getOrDefault(film.getId(), Set.of()));
             film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
             film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
             film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
@@ -232,12 +226,10 @@ public class FilmDbStorage implements FilmStorage {
         Collection<Film> films = jdbc.query(FIND_ALL_FILM_SORT_BY_LIKES, mapper, directorId);
 
         Map<Integer, Set<Integer>> likesByFilm = findAllLikes();
-        Map<Integer, Set<Genre>> genresByFilm = findAllGenresByFilms();
         Map<Integer, Set<Director>> directorsByFilm = findAllDirectorsByFilms();
         Map<Integer, Rating> ratingByFilm = findAllRatingsByFilm();
 
         for (Film film : films) {
-            film.setGenres(genresByFilm.getOrDefault(film.getId(), Set.of()));
             film.setLikes(likesByFilm.getOrDefault(film.getId(), Set.of()));
             film.setDirectors(directorsByFilm.getOrDefault(film.getId(), Set.of()));
             film.setMpa(ratingByFilm.getOrDefault(film.getId(), null));
@@ -304,21 +296,6 @@ public class FilmDbStorage implements FilmStorage {
             }
         });
         log.info("Обновлен список жанров фильма (id): {}", filmId);
-    }
-
-    private Map<Integer, Set<Genre>> findAllGenresByFilms() {
-        log.info("Поиск жанров для каждого фильма");
-        return jdbc.query(FIND_ALL_GENRE_QUERY, rs -> {
-            Map<Integer, Set<Genre>> map = new HashMap<>();
-            while (rs.next()) {
-                int filmId = rs.getInt("film_id");
-                Genre genre = new Genre();
-                genre.setId(rs.getInt("genre_id"));
-                genre.setName(rs.getString("name"));
-                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
-            }
-            return map;
-        });
     }
 
     private Set<Integer> findLikeFilm(int id) {
@@ -432,13 +409,11 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbc.query(sql.toString(), mapper, params.toArray());
 
         Map<Integer, Set<Integer>> likesMap = findAllLikes();
-        Map<Integer, Set<Genre>> genresMap = findAllGenresByFilms();
         Map<Integer, Set<Director>> directorsMap = findAllDirectorsByFilms();
         Map<Integer, Rating> ratingMap = findAllRatingsByFilm();
 
         for (Film f : films) {
             f.setLikes(likesMap.getOrDefault(f.getId(), Set.of()));
-            f.setGenres(genresMap.getOrDefault(f.getId(), Set.of()));
             f.setDirectors(directorsMap.getOrDefault(f.getId(), Set.of()));
             f.setMpa(ratingMap.getOrDefault(f.getId(), null));
         }

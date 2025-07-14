@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -36,7 +37,7 @@ public class FilmService {
 
     public Collection<Film> findAll() {
         log.info("Обрабатываем запрос на поиск всех фильмов");
-        return filmStorage.findAll();
+        return enrichFilms(filmStorage.findAll());
     }
 
     public Film findFilm(int id) {
@@ -131,23 +132,34 @@ public class FilmService {
         }
         if (sortBy.equals("year")) {
             log.info("Проводим сортировку фильмов по году");
-            return filmStorage.sortDirectorByYear(directorId);
+            return enrichFilms(filmStorage.sortDirectorByYear(directorId));
         } else if (sortBy.equals("likes")) {
             log.info("Проводим сортировку фильмов по лайкам");
-            return filmStorage.sortDirectorByLikes(directorId);
+            return enrichFilms(filmStorage.sortDirectorByLikes(directorId));
         } else {
             throw new ValidationException("Неверный параметр sortBy: " + sortBy);
         }
 
     }
 
-    public List<Film> search(String query, String by) {
+    public Collection<Film> search(String query, String by) {
         log.info("Поиск фильмов по '{}' в: {}", query, by);
         var criteria = Arrays.stream(by.split(","))
                 .map(String::trim)
                 .map(String::toLowerCase)
                 .toList();
-        return filmStorage.search(query, criteria);
+        return enrichFilms(filmStorage.search(query, criteria));
+    }
+
+    public Collection<Film> enrichFilms(final Collection<Film> films) {
+
+        Map<Integer, Set<Genre>> genresByFilmS = genreStorage.findAllGenresByFilms();
+
+        for (Film film : films) {
+            film.setGenres(genresByFilmS.getOrDefault(film.getId(), Set.of()));
+        }
+
+        return films;
     }
 
 }
