@@ -15,7 +15,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.Collection;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,6 +26,10 @@ public class DirectorDbStorage {
     private static final String CREATE_QUERY = "INSERT INTO Directors (name) VALUES (?)";
     private static final String UPDATE_QUERY = "UPDATE Directors SET name = ? WHERE director_id = ?";
     private static final String REMOVE_QUERY = "DELETE FROM Directors WHERE director_id = ?";
+    private static final String FIND_ALL_DIRECTOR_QUERY = "SELECT d.*, fd.film_id FROM Directors d " +
+            "JOIN Film_Directors fd ON d.director_id = fd.director_id";
+    private static final String FIND_DIRECTOR_BY_FILM_QUERY = "SELECT d.* FROM Directors d " +
+            "JOIN Film_Directors fd ON d.director_id = fd.director_id WHERE fd.film_id = ?";
 
     private final JdbcTemplate jdbc;
     private final DirectorRowMapper mapper;
@@ -92,5 +96,25 @@ public class DirectorDbStorage {
         } catch (DataIntegrityViolationException e) {
             throw new ValidationException("Ошибка валидации при сохранении в БД");
         }
+    }
+
+    public Map<Integer, Set<Director>> findAllDirectorsByFilms() {
+        log.info("Поиск режиссеров для каждого фильма");
+        return jdbc.query(FIND_ALL_DIRECTOR_QUERY, rs -> {
+            Map<Integer, Set<Director>> map = new HashMap<>();
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                Director director = new Director();
+                director.setId(rs.getInt("director_id"));
+                director.setName(rs.getString("name"));
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(director);
+            }
+            return map;
+        });
+    }
+
+    public Set<Director> findDirectorsFilm(int id) {
+        log.info("Поиск режиссеров для фильма");
+        return new HashSet<>(jdbc.query(FIND_DIRECTOR_BY_FILM_QUERY, mapper, id));
     }
 }

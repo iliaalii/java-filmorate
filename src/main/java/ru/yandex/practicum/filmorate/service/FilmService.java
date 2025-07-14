@@ -35,6 +35,7 @@ public class FilmService {
     private final DirectorDbStorage directorStorage;
     private final GenreService genreService;
     private final RatingService ratingService;
+    private final DirectorService directorService;
 
 
     public Collection<Film> findAll() {
@@ -44,19 +45,19 @@ public class FilmService {
 
     public Film findFilm(int id) {
         log.info("Обрабатываем запрос на поиск фильма (id): {}", id);
-        return filmStorage.findFilm(id);
+        return enrichFilm(filmStorage.findFilm(id));
     }
 
     public Film create(Film film) {
         log.info("Обрабатываем запрос на добавление фильма");
         validationFilm(film);
-        return filmStorage.create(film);
+        return enrichFilm(filmStorage.create(film));
     }
 
     public Film update(Film newFilm) {
         log.info("Обрабатываем запрос на обновление фильма");
         validationFilm(newFilm);
-        return filmStorage.update(newFilm);
+        return enrichFilm(filmStorage.update(newFilm));
     }
 
     public void addLike(int id, int userId) {
@@ -77,18 +78,23 @@ public class FilmService {
 
     public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
         log.info("Обрабатывается запрос популярных фильмов по жанру {} и/или году {}", genreId, year);
-        return filmStorage.getPopularFilms(count, genreId, year);
+        return enrichFilms(filmStorage.getPopularFilms(count, genreId, year));
     }
 
-    public List<Film> getCommonFilms(final int id, final int userId) {
+    public Collection<Film> getCommonFilms(final int id, final int userId) {
         log.trace("Получение общих фильмов пользователей с id {} и {}.", id, userId);
 
-        return filmStorage.getCommonFilms(id, userId);
+        return enrichFilms(filmStorage.getCommonFilms(id, userId));
     }
 
     public void removeFilm(int filmId) {
         log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
         filmStorage.removeFilm(filmId);
+    }
+
+    public Collection<Film> recommendFilms(final long userId) {
+        log.trace("Подбираются рекомендации для пользователя с id: {}.", userId);
+        return enrichFilms(filmStorage.recommendFilms(userId));
     }
 
     private void validationFilm(Film film) {
@@ -156,13 +162,21 @@ public class FilmService {
     public Collection<Film> enrichFilms(final Collection<Film> films) {
         Map<Integer, Rating> ratingMap = ratingService.findAllRatingsByFilm();
         Map<Integer, Set<Genre>> genresByFilmS = genreService.findAllGenresByFilms();
+        Map<Integer, Set<Director>> directorsMap = directorService.findAllDirectorsByFilms();
+        Map<Integer, Set<Integer>> likesMap = filmStorage.findAllLikes();
 
         for (Film film : films) {
             film.setGenres(genresByFilmS.getOrDefault(film.getId(), Set.of()));
             film.setMpa(ratingMap.getOrDefault(film.getId(), null));
+            film.setDirectors(directorsMap.getOrDefault(film.getId(), Set.of()));
+            film.setLikes(likesMap.getOrDefault(film.getId(), Set.of()));
         }
-
         return films;
+    }
+
+    public Film enrichFilm(final Film film) {
+        film.setDirectors(directorService.findDirectorsFilm(film.getId()));
+        return film;
     }
 }
 

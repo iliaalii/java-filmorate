@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.Collection;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,5 +37,13 @@ public class DirectorService {
     public void removeDirector(int directorId) {
         log.info("Обрабатываем запрос на удаление режиссера");
         storage.removeDirector(directorId);
+    }
+
+    public Map<Integer, Set<Director>> findAllDirectorsByFilms() {
+        return storage.findAllDirectorsByFilms();
+    }
+
+    public Set<Director> findDirectorsFilm(final int id) {
+        return storage.findDirectorsFilm(id);
     }
 }
