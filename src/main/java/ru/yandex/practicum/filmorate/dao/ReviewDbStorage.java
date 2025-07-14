@@ -28,7 +28,7 @@ public class ReviewDbStorage {
 
     private static final String ADD_QUERY = "INSERT INTO Reviews (film_id, user_id, content, is_positive) " +
             "VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE Reviews SET film_id = ?,user_id = ?, content = ?," +
+    private static final String UPDATE_QUERY = "UPDATE Reviews SET content = ?," +
             " is_positive = ? WHERE review_id = ?";
     private static final String REMOVE_QUERY = "DELETE FROM Reviews WHERE review_id = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT r.*, COALESCE(SUM(CASE WHEN rl.is_like = true THEN 1 " +
@@ -38,7 +38,9 @@ public class ReviewDbStorage {
     private static final String FIND_ALL_QUERY = "SELECT r.*, COALESCE(SUM(CASE WHEN rl.is_like = true THEN 1 " +
             "WHEN rl.is_like = false THEN -1 ELSE 0 END), 0) AS useful " +
             "FROM reviews r LEFT JOIN review_likes rl ON r.review_id = rl.review_id " +
-            "WHERE r.film_id = ? GROUP BY r.review_id, r.content, r.is_positive, r.user_id, r.film_id LIMIT ?";
+            "WHERE (? IS NULL OR r.film_id = ?) " +
+            "GROUP BY r.review_id, r.content, r.is_positive, r.user_id, r.film_id ORDER BY useful DESC " +
+            "LIMIT ?";
 
     private static final String ADD_LIKE_QUERY = "MERGE INTO Review_Likes KEY(review_id, user_id) VALUES (?, ?, ?)";
     private static final String REMOVE_LIKE_QUERY = "DELETE FROM Review_Likes WHERE review_id = ? AND user_id = ?";
@@ -77,8 +79,6 @@ public class ReviewDbStorage {
         checkRelevance(newReview);
         try {
             int rowsUpdated = jdbc.update(UPDATE_QUERY,
-                    newReview.getFilmId(),
-                    newReview.getUserId(),
                     newReview.getContent(),
                     newReview.getIsPositive(),
                     newReview.getReviewId());
@@ -107,7 +107,7 @@ public class ReviewDbStorage {
 
     public Collection<Review> findAll(Integer filmId, int count) {
         log.info("Поиск {} обзора(ов) фильма под номером: {}", count, filmId);
-        return jdbc.query(FIND_ALL_QUERY, mapper, filmId, count);
+        return jdbc.query(FIND_ALL_QUERY, mapper, filmId, filmId, count);
     }
 
     public void addLike(int filmId, int userId) {

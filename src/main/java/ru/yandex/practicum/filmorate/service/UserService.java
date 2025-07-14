@@ -49,16 +49,16 @@ public class UserService {
         log.info("Обрабатываем запрос на добавление в друзья");
         if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
             userStorage.addFriend(id, friendId);
+            eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.ADD);
         }
-        eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.ADD);
     }
 
     public void removeFriend(int id, int friendId) {
         log.info("Обрабатываем запрос на удаление из друзей");
         if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
             userStorage.removeFriend(id, friendId);
+            eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.REMOVE);
         }
-        eventService.createNowEvent(id, friendId, EventType.FRIEND, OperationType.REMOVE);
     }
 
     public Collection<User> findFriends(int id) {
