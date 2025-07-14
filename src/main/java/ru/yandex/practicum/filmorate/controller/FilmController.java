@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -28,12 +29,23 @@ public class FilmController {
     @GetMapping("/director/{directorId}")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> findAllSortDirector(
-            @PathVariable("directorId") int directorId,
+            @PathVariable("directorId") @Positive int directorId,
             @RequestParam String sortBy) {
 
         return service.sortDirector(directorId,sortBy);
     }
 
+    @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> search(
+            @RequestParam String query,
+            @RequestParam String by
+    ) {
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Параметр query не может быть пустым");
+        }
+        return service.search(query, by);
+    }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
