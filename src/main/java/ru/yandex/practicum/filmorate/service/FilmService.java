@@ -145,6 +145,7 @@ public class FilmService {
         }
 
     }
+
     public List<Film> search(String query, String by) {
         log.info("Поиск фильмов по '{}' в: {}", query, by);
         var criteria = Arrays.stream(by.split(","))

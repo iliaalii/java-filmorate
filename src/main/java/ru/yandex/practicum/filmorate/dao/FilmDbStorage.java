@@ -380,7 +380,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> search(String query, List<String> by) {
-        boolean byTitle    = by.contains("title");
+        boolean byTitle = by.contains("title");
         boolean byDirector = by.contains("director");
         if (!byTitle && !byDirector) {
             throw new IllegalArgumentException("Параметр by должен содержать 'title' или 'director'");
@@ -414,10 +414,10 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbc.query(sql.toString(), mapper, params.toArray());
 
         // Дозаполняем плэйлисты
-        Map<Integer, Set<Integer>> likesMap       = findAllLikes();
-        Map<Integer, Set<Genre>>    genresMap     = findAllGenresByFilms();
-        Map<Integer, Set<Director>> directorsMap  = findAllDirectorsByFilms();
-        Map<Integer, Rating>        ratingMap     = findAllRatingsByFilm();
+        Map<Integer, Set<Integer>> likesMap = findAllLikes();
+        Map<Integer, Set<Genre>> genresMap = findAllGenresByFilms();
+        Map<Integer, Set<Director>> directorsMap = findAllDirectorsByFilms();
+        Map<Integer, Rating> ratingMap = findAllRatingsByFilm();
 
         for (Film f : films) {
             f.setLikes(likesMap.getOrDefault(f.getId(), Set.of()));
