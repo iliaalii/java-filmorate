@@ -60,16 +60,16 @@ public class FilmService {
         log.info("Обрабатываем запрос на выставление лайка фильму (id): {}, от пользователя (id): {}", id, userId);
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.addLike(id, userId);
+            eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.ADD);
         }
-        eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.ADD);
     }
 
     public void removeLike(int id, int userId) {
         log.info("Обрабатываем запрос на удаление лайка фильму (id): {}, от пользователя (id): {}", id, userId);
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.removeLike(id, userId);
+            eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.REMOVE);
         }
-        eventService.createNowEvent(userId, id, EventType.LIKE, OperationType.REMOVE);
     }
 
     public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
@@ -80,15 +80,7 @@ public class FilmService {
     public List<Film> getCommonFilms(final int id, final int userId) {
         log.trace("Получение общих фильмов пользователей с id {} и {}.", id, userId);
 
-        List<Film> films = filmStorage.getCommonFilms(id, userId);
-        Map<Integer, Set<Genre>> filmsGenres = genreStorage.getFilmsGenres(filmStorage.getCommonFilms(id, userId)
-                .stream()
-                .map(Film::getId)
-                .toList());
-
-        return films.stream()
-                .peek(film -> film.setGenres(filmsGenres.get(film.getId())))
-                .toList();
+        return filmStorage.getCommonFilms(id, userId);
     }
 
     public void removeFilm(int filmId) {
@@ -134,6 +126,9 @@ public class FilmService {
     }
 
     public Collection<Film> sortDirector(int directorId, String sortBy) {
+        if (directorStorage.findDirector(directorId) == null) {
+            throw new NotFoundException("Режиссер отсутствует");
+        }
         if (sortBy.equals("year")) {
             log.info("Проводим сортировку фильмов по году");
             return filmStorage.sortDirectorByYear(directorId);

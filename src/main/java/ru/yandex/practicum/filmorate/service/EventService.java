@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.EventDbStorage;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
@@ -17,13 +19,14 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Slf4j
 public class EventService {
-    private final EventDbStorage storage;
+    private final EventDbStorage eventStorage;
+    private final UserDbStorage userService;
 
     public void createNowEvent(final long userId, final long entityId,
                                final EventType eventType, final OperationType operationType) {
         log.trace("Создается ивент.");
 
-        storage.addEvent(Event.builder()
+        eventStorage.addEvent(Event.builder()
                 .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                 .userId(userId)
                 .eventType(eventType)
@@ -35,6 +38,9 @@ public class EventService {
 
     public Collection<Event> getUserEvents(final long id) {
         log.trace("Запрошены все ивенты пользователя с id: {}.", id);
-        return storage.getUserEvents(id);
+        if (userService.findUser((int) id) == null) {
+            throw new NotFoundException("Пользователь не найден.");
+        }
+        return eventStorage.getUserEvents(id);
     }
 }

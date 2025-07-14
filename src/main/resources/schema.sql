@@ -15,7 +15,7 @@ create TABLE IF NOT EXISTS Directors (
 
 
 create TABLE IF NOT EXISTS Films (
-  film_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  film_id INTEGER AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
   description VARCHAR(200),
   release_date DATE,

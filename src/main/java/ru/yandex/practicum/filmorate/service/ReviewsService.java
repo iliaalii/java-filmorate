@@ -21,24 +21,23 @@ public class ReviewsService {
     public Review add(Review review) {
         Review savedReview = storage.add(review);
 
-        eventService.createNowEvent(review.getUserId(), review.getReviewId(), EventType.REVIEW, OperationType.ADD);
+        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW, OperationType.ADD);
 
         return savedReview;
     }
 
     public Review update(Review review) {
         Review savedReview = storage.update(review);
-
-        eventService.createNowEvent(review.getUserId(), review.getReviewId(), EventType.REVIEW, OperationType.UPDATE);
+        //log.info("Review updated: reviewId={}, userId={}", review.getReviewId(), review.getUserId());
+        log.info("Обновлён reviewId={}, userId={}", savedReview.getReviewId(), savedReview.getUserId());
+        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW, OperationType.UPDATE);
 
         return savedReview;
     }
 
     public void remove(int id) {
         Review savedReview = storage.findById(id);
-
-        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW,
-                OperationType.REMOVE);
+        eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW, OperationType.REMOVE);
 
         storage.remove(id);
     }
@@ -51,19 +50,21 @@ public class ReviewsService {
         return storage.findAll(filmId, count);
     }
 
-    public void addLike(int id, int userId) {
-        storage.addLike(id, userId);
+    public void addLike(int reviewId, int userId) {
+        storage.addLike(reviewId, userId);
+        //eventService.createNowEvent(userId, reviewId, EventType.LIKE, OperationType.ADD); //<- Review REMOVE
     }
 
-    public void addDislike(int id, int userId) {
-        storage.addDislike(id, userId);
+    public void removeLike(int reviewId, int userId) {
+        //eventService.createNowEvent(userId, reviewId, EventType.LIKE, OperationType.REMOVE);
+        storage.removeLike(reviewId, userId);
     }
 
-    public void removeLike(int id, int userId) {
-        storage.removeLike(id, userId);
+    public void addDislike(int reviewId, int userId) {
+        storage.addDislike(reviewId, userId);
     }
 
-    public void removeDislike(int id, int userId) {
-        storage.removeDislike(id, userId);
+    public void removeDislike(int reviewId, int userId) {
+        storage.removeDislike(reviewId, userId);
     }
 }
