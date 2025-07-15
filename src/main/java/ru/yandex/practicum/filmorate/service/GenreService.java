@@ -18,8 +18,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 public class GenreService {
-    private final GenreRepository storage;
 
+    private final GenreRepository storage;
 
     public Genre findGenre(final int id) {
         log.info("Обрабатываем запрос на поиск жанра");

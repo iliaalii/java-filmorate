@@ -24,7 +24,7 @@ public class EventRepository {
             "operation_type_id, entity_id FROM events WHERE user_id = ?";
 
 
-    public void addEvent(Event event) {
+    public void addEvent(final Event event) {
         jdbc.update(con -> {
             log.debug("Добавляется ивент.");
             PreparedStatement ps = con.prepareStatement(ADD_EVENT, Statement.RETURN_GENERATED_KEYS);
@@ -37,7 +37,7 @@ public class EventRepository {
         });
     }
 
-    public Collection<Event> getUserEvents(long id) {
+    public Collection<Event> getUserEvents(final long id) {
         log.debug("Возвращаются все ивенты пользователя с id: {}.", id);
         return jdbc.query(GET_USER_EVENTS, eventRowMapper, id);
     }

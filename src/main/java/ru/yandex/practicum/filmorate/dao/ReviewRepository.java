@@ -20,17 +20,17 @@ import java.util.Collection;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class RewiewRepository {
+public class ReviewRepository {
     private final JdbcTemplate jdbc;
     private final ReviewRowMapper mapper;
     private final FilmRepository filmStorage;
     private final UserRepository userStorage;
 
-    private static final String ADD_QUERY = "INSERT INTO Reviews (film_id, user_id, content, is_positive) " +
+    private static final String ADD_QUERY = "INSERT INTO reviews (film_id, user_id, content, is_positive) " +
             "VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE Reviews SET content = ?," +
+    private static final String UPDATE_QUERY = "UPDATE reviews SET content = ?," +
             " is_positive = ? WHERE review_id = ?";
-    private static final String REMOVE_QUERY = "DELETE FROM Reviews WHERE review_id = ?";
+    private static final String REMOVE_QUERY = "DELETE FROM reviews WHERE review_id = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT r.*, COALESCE(SUM(CASE WHEN rl.is_like = true THEN 1 " +
             "WHEN rl.is_like = false THEN -1 ELSE 0 END), 0) AS useful " +
             "FROM reviews r LEFT JOIN review_likes rl ON r.review_id = rl.review_id " +
@@ -42,10 +42,10 @@ public class RewiewRepository {
             "GROUP BY r.review_id, r.content, r.is_positive, r.user_id, r.film_id ORDER BY useful DESC " +
             "LIMIT ?";
 
-    private static final String ADD_LIKE_QUERY = "MERGE INTO Review_Likes KEY(review_id, user_id) VALUES (?, ?, ?)";
-    private static final String REMOVE_LIKE_QUERY = "DELETE FROM Review_Likes WHERE review_id = ? AND user_id = ?";
+    private static final String ADD_LIKE_QUERY = "MERGE INTO review_likes KEY(review_id, user_id) VALUES (?, ?, ?)";
+    private static final String REMOVE_LIKE_QUERY = "DELETE FROM review_likes WHERE review_id = ? AND user_id = ?";
 
-    public Review add(Review review) {
+    public Review add(final Review review) {
         log.info("Добавляем новый обзор");
         checkRelevance(review);
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
@@ -73,7 +73,7 @@ public class RewiewRepository {
         }
     }
 
-    public Review update(Review newReview) {
+    public Review update(final Review newReview) {
         log.info("Обновляем обзор");
         findById(newReview.getReviewId());
         checkRelevance(newReview);
@@ -91,12 +91,12 @@ public class RewiewRepository {
         }
     }
 
-    public void remove(int id) {
+    public void remove(final int id) {
         jdbc.update(REMOVE_QUERY, id);
         log.info("Обзор под номером (id): {}, был удален", id);
     }
 
-    public Review findById(int id) {
+    public Review findById(final int id) {
         try {
             log.info("Поиск обзора по id: {}", id);
             return jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
@@ -105,27 +105,27 @@ public class RewiewRepository {
         }
     }
 
-    public Collection<Review> findAll(Integer filmId, int count) {
+    public Collection<Review> findAll(final Integer filmId, final int count) {
         log.info("Поиск {} обзора(ов) фильма под номером: {}", count, filmId);
         return jdbc.query(FIND_ALL_QUERY, mapper, filmId, filmId, count);
     }
 
-    public void addLike(int filmId, int userId) {
+    public void addLike(final int filmId, final int userId) {
         log.info("Добавлен лайк фильму {} от пользователя {}", filmId, userId);
         jdbc.update(ADD_LIKE_QUERY, filmId, userId, true);
     }
 
-    public void addDislike(int filmId, int userId) {
+    public void addDislike(final int filmId, final int userId) {
         log.info("Добавлен дизлайк фильму {} от пользователя {}", filmId, userId);
         jdbc.update(ADD_LIKE_QUERY, filmId, userId, false);
     }
 
-    public void removeLike(int filmId, int userId) {
+    public void removeLike(final int filmId, final int userId) {
         log.info("Добавлен лайк фильму {} от пользователя {} был удален", filmId, userId);
         jdbc.update(REMOVE_LIKE_QUERY, filmId, userId);
     }
 
-    public void removeDislike(int filmId, int userId) {
+    public void removeDislike(final int filmId, final int userId) {
         log.info("Добавлен дизлайк фильму {} от пользователя {} был удален", filmId, userId);
         jdbc.update(REMOVE_LIKE_QUERY, filmId, userId);
     }

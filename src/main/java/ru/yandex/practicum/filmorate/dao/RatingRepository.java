@@ -20,8 +20,8 @@ public class RatingRepository {
     private final RatingRowMapper mapper;
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM rating ";
-    private static final String FIND_ALL_RATINGS_BY_FILMS = "SELECT f.film_id, r.rating_id, r.name FROM Films f " +
-            "JOIN Rating r ON f.rating_id = r.rating_id WHERE f.film_id IN (:filmIds)";
+    private static final String FIND_ALL_RATINGS_BY_FILMS = "SELECT f.film_id, r.rating_id, r.name FROM films f " +
+            "JOIN rating r ON f.rating_id = r.rating_id WHERE f.film_id IN (:filmIds)";
 
 
     public Collection<Rating> findAllRating() {

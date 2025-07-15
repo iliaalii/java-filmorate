@@ -14,7 +14,7 @@ import ru.yandex.practicum.filmorate.exception.DataConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
 import java.sql.*;
@@ -25,36 +25,36 @@ import java.util.*;
 @Slf4j
 public class FilmRepository implements FilmStorage {
 
-    private static final String FIND_ALL_QUERY = "SELECT * FROM Films";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM Films WHERE film_id = ?";
-    private static final String CREATE_QUERY = "INSERT INTO Films (name, description, release_date, duration," +
+    private static final String FIND_ALL_QUERY = "SELECT * FROM films";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE film_id = ?";
+    private static final String CREATE_QUERY = "INSERT INTO films (name, description, release_date, duration," +
             " rating_id) VALUES (?, ?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE Films SET name = ?,description = ?, release_date = ?," +
+    private static final String UPDATE_QUERY = "UPDATE films SET name = ?,description = ?, release_date = ?," +
             " duration = ?, rating_id = ? WHERE film_id = ?";
-    private static final String ADD_LIKE_QUERY = "MERGE INTO Likes (film_id, user_id) VALUES (?, ?)";
-    private static final String REMOVE_LIKE_QUERY = "DELETE FROM Likes WHERE film_id = ? AND user_id = ?";
-    private static final String FIND_ALL_LIKES_BY_FILMS = "SELECT film_id, user_id FROM Likes " +
+    private static final String ADD_LIKE_QUERY = "MERGE INTO likes (film_id, user_id) VALUES (?, ?)";
+    private static final String REMOVE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
+    private static final String FIND_ALL_LIKES_BY_FILMS = "SELECT film_id, user_id FROM likes " +
             "WHERE film_id IN (:filmIds)";
     private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
     private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
-            " f.duration, f.rating_id FROM Films f" +
-            " JOIN Likes l1 ON f.film_id = l1.film_id AND l1.user_id = ?" +
-            " JOIN Likes l2 ON f.film_id = l2.film_id AND l2.user_id = ?" +
-            " ORDER BY (SELECT COUNT(*) FROM Likes l WHERE l.film_id = f.film_id) DESC";
+            " f.duration, f.rating_id FROM films f" +
+            " JOIN likes l1 ON f.film_id = l1.film_id AND l1.user_id = ?" +
+            " JOIN likes l2 ON f.film_id = l2.film_id AND l2.user_id = ?" +
+            " ORDER BY (SELECT COUNT(*) FROM likes l WHERE l.film_id = f.film_id) DESC";
     private static final String GET_POPULAR_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
-            " f.duration, f.rating_id, COUNT(l.user_id) AS likes_count FROM Films AS f " +
-            "LEFT JOIN Likes l ON f.film_id = l.film_id LEFT JOIN Films_Genres fg ON f.film_id = fg.film_id " +
-            "LEFT JOIN Genres g ON fg.genre_id = g.genre_id " +
+            " f.duration, f.rating_id, COUNT(l.user_id) AS likes_count FROM films AS f " +
+            "LEFT JOIN likes l ON f.film_id = l.film_id LEFT JOIN films_Genres fg ON f.film_id = fg.film_id " +
+            "LEFT JOIN genres g ON fg.genre_id = g.genre_id " +
             "WHERE (? IS NULL OR g.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
             "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
             "ORDER BY likes_count DESC LIMIT ?";
     private static final String RECOMMEND_FILMS_QUERY =
             "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
-                    "FROM Films f " +
-                    "JOIN Likes l ON f.film_id = l.film_id " +
-                    "LEFT JOIN Likes l2 ON l2.film_id = f.film_id AND l2.user_id = ? " +
+                    "FROM films f " +
+                    "JOIN likes l ON f.film_id = l.film_id " +
+                    "LEFT JOIN likes l2 ON l2.film_id = f.film_id AND l2.user_id = ? " +
                     "WHERE l.user_id = ( " +
-                    "SELECT l2.user_id FROM Likes l1 JOIN Likes l2 ON l1.film_id = l2.film_id " +
+                    "SELECT l2.user_id FROM likes l1 JOIN Likes l2 ON l1.film_id = l2.film_id " +
                     "WHERE l1.user_id = ? AND l2.user_id != ? GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
                     "AND l2.film_id IS NULL";
 
@@ -69,7 +69,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public Film findFilm(int id) {
+    public Film findFilm(final int id) {
         try {
             log.info("Поиск фильма с id: {}", id);
             return jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
@@ -79,7 +79,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public Film create(Film film) {
+    public Film create(final Film film) {
         log.info("Добавляем новый фильм");
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -110,9 +110,8 @@ public class FilmRepository implements FilmStorage {
         return film;
     }
 
-
     @Override
-    public Film update(Film newFilm) {
+    public Film update(final Film newFilm) {
         log.info("Обновляем фильм");
         try {
             int rowsUpdated = jdbc.update(UPDATE_QUERY,
@@ -133,7 +132,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public void addLike(int id, int userId) {
+    public void addLike(final int id, final int userId) {
         try {
             jdbc.update(ADD_LIKE_QUERY, id, userId);
             log.info("Пользователь (id): {}, поставил лайк фильму (id): {}", userId, id);
@@ -143,7 +142,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public void removeLike(int id, int userId) {
+    public void removeLike(final int id, final int userId) {
         jdbc.update(REMOVE_LIKE_QUERY, id, userId);
         log.info("Пользователь (id): {}, убрал лайк фильму (id): {}", userId, id);
     }
@@ -171,7 +170,7 @@ public class FilmRepository implements FilmStorage {
         return jdbc.query(GET_COMMON_FILMS, mapper, id, friendId);
     }
 
-    public Collection<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
+    public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
         return jdbc.query(GET_POPULAR_FILMS, mapper, genreId, genreId, year, year, count);
     }
 
@@ -192,7 +191,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> search(String query, List<String> by) {
+    public Collection<Film> search(final String query, final List<String> by) {
         boolean byTitle = by.contains("title");
         boolean byDirector = by.contains("director");
         if (!byTitle && !byDirector) {

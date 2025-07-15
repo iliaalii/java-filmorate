@@ -17,6 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class RatingService {
+
     private final RatingRepository storage;
 
     public Rating findRating(final int id) {

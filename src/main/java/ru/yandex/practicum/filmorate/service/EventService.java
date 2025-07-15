@@ -14,11 +14,11 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EventService {
+
     private final EventRepository eventStorage;
     private final UserRepository userService;
 

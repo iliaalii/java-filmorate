@@ -17,6 +17,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class DirectorService {
+
     private final DirectorRepository storage;
 
     public Director findDirector(final int id) {
@@ -27,25 +28,25 @@ public class DirectorService {
     }
 
     @Cacheable("allDirectors")
-    public  Map<Integer, Director> findAllDirector() {
+    public Map<Integer, Director> findAllDirector() {
         log.info("Обрабатываем запрос на поиск всех режиссеров");
         return storage.findAllDirectors();
     }
 
     @CacheEvict(value = "allDirectors", allEntries = true)
-    public Director create(Director director) {
+    public Director create(final Director director) {
         log.info("Обрабатываем запрос на добавление режиссера");
         return storage.create(director);
     }
 
     @CacheEvict(value = "allDirectors", allEntries = true)
-    public Director update(Director newDirector) {
+    public Director update(final Director newDirector) {
         log.info("Обрабатываем запрос на обновление режиссера");
         return storage.update(newDirector);
     }
 
     @CacheEvict(value = "allDirectors", allEntries = true)
-    public void removeDirector(int directorId) {
+    public void removeDirector(final int directorId) {
         log.info("Обрабатываем запрос на удаление режиссера");
         storage.removeDirector(directorId);
     }
@@ -54,7 +55,7 @@ public class DirectorService {
         return storage.findAllDirectorsByFilms(filmsIds);
     }
 
-    public Collection<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
+    public Collection<Film> getDirectorFilmsSorted(final int directorId, final String sortBy) {
         if (storage.findDirector(directorId) == null) {
             throw new NotFoundException("Режиссёр с id=" + directorId + " не найден");
         }

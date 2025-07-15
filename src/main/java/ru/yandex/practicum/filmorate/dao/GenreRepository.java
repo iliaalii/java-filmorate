@@ -25,11 +25,11 @@ public class GenreRepository {
     private final JdbcTemplate jdbc;
     private final GenreRowMapper mapper;
 
-    private static final String FIND_ALL_QUERY = "SELECT * FROM Genres";
-    private static final String FIND_ALL_GENRES_BY_FILMS = "SELECT g.*, fg.film_id FROM Genres g " +
-            "JOIN Films_Genres fg ON g.genre_id = fg.genre_id WHERE fg.film_id IN (:filmIds)";
-    private static final String CLEAR_GENRE_BY_FILM_QUERY = "DELETE FROM Films_Genres WHERE film_id = ?";
-    private static final String ADD_GENRE_BY_FILM_QUERY = "INSERT INTO Films_Genres (film_id, genre_id) VALUES (?, ?)";
+    private static final String FIND_ALL_QUERY = "SELECT * FROM genres";
+    private static final String FIND_ALL_GENRES_BY_FILMS = "SELECT g.*, fg.film_id FROM genres g " +
+            "JOIN films_genres fg ON g.genre_id = fg.genre_id WHERE fg.film_id IN (:filmIds)";
+    private static final String CLEAR_GENRE_BY_FILM_QUERY = "DELETE FROM films_genres WHERE film_id = ?";
+    private static final String ADD_GENRE_BY_FILM_QUERY = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
 
 
     public Map<Integer, Genre> findAllGenre() {

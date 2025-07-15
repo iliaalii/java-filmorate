@@ -12,7 +12,7 @@ import ru.yandex.practicum.filmorate.exception.DataConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -26,20 +26,20 @@ public class UserRepository implements UserStorage {
     private final JdbcTemplate jdbc;
     private final UserRowMapper userRowMapper;
 
-    private static final String FIND_ALL_QUERY = "SELECT * FROM Users";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM Users WHERE user_id = ?";
-    private static final String CREATE_QUERY = "INSERT INTO Users (login, name, email, birthday) VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE Users SET login = ?, name = ?, email = ?, birthday = ? " +
+    private static final String FIND_ALL_QUERY = "SELECT * FROM users";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE user_id = ?";
+    private static final String CREATE_QUERY = "INSERT INTO users (login, name, email, birthday) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE users SET login = ?, name = ?, email = ?, birthday = ? " +
             "WHERE user_id = ?";
-    private static final String ADD_FRIEND_QUERY = "INSERT INTO Friends (user_id, friend_id) VALUES (?, ?)";
-    private static final String REMOVE_FRIEND_QUERY = "DELETE FROM Friends WHERE user_id = ? AND friend_id = ?";
-    private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM Users u " +
-            "WHERE u.user_id IN (SELECT friend_id FROM Friends f WHERE f.user_id = ?)";
-    private static final String FIND_COMMON_FRIENDS_QUERY = "SELECT u.* FROM Friends f1 " +
-            "INNER JOIN Friends f2 ON f1.friend_id = f2.friend_id " +
-            "INNER JOIN Users u ON f1.friend_id = u.user_id " +
+    private static final String ADD_FRIEND_QUERY = "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)";
+    private static final String REMOVE_FRIEND_QUERY = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
+    private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM users u " +
+            "WHERE u.user_id IN (SELECT friend_id FROM friends f WHERE f.user_id = ?)";
+    private static final String FIND_COMMON_FRIENDS_QUERY = "SELECT u.* FROM friends f1 " +
+            "INNER JOIN friends f2 ON f1.friend_id = f2.friend_id " +
+            "INNER JOIN users u ON f1.friend_id = u.user_id " +
             "WHERE f1.user_id = ? AND f2.user_id = ?";
-    private static final String REMOVE_USER_QUERY = "DELETE FROM Users WHERE user_id = ?";
+    private static final String REMOVE_USER_QUERY = "DELETE FROM users WHERE user_id = ?";
 
     @Override
     public Collection<User> findAll() {
@@ -48,7 +48,7 @@ public class UserRepository implements UserStorage {
     }
 
     @Override
-    public User findUser(int id) {
+    public User findUser(final int id) {
         try {
             log.info("Поиск фильма по id: {}", id);
             return jdbc.queryForObject(FIND_BY_ID_QUERY, userRowMapper, id);
@@ -58,7 +58,7 @@ public class UserRepository implements UserStorage {
     }
 
     @Override
-    public User create(User user) {
+    public User create(final User user) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         try {
             jdbc.update(con -> {
@@ -77,7 +77,6 @@ public class UserRepository implements UserStorage {
             throw new ValidationException("Ошибка валидации при сохранении в БД");
         }
 
-
         Integer id = keyHolder.getKeyAs(Integer.class);
         if (id != null) {
             user.setId(id);
@@ -89,7 +88,7 @@ public class UserRepository implements UserStorage {
     }
 
     @Override
-    public User update(User newUser) {
+    public User update(final User newUser) {
         log.info("Обновляем пользователя");
         findUser(newUser.getId());
         try {
@@ -109,7 +108,7 @@ public class UserRepository implements UserStorage {
     }
 
     @Override
-    public void addFriend(int id, int friendId) {
+    public void addFriend(final int id, final int friendId) {
         try {
             jdbc.update(ADD_FRIEND_QUERY, id, friendId);
             log.info("Пользователь {} и {}, теперь друзья", id, friendId);
@@ -119,25 +118,25 @@ public class UserRepository implements UserStorage {
     }
 
     @Override
-    public void removeFriend(int id, int friendId) {
+    public void removeFriend(final int id, final int friendId) {
         jdbc.update(REMOVE_FRIEND_QUERY, id, friendId);
         log.info("Пользователи {} и {}, более не друзья", id, friendId);
     }
 
     @Override
-    public Collection<User> findFriends(int id) {
-        log.info("поиск всех друзей пользователя (id): {}", id);
+    public Collection<User> findFriends(final int id) {
+        log.info("Поиск всех друзей пользователя (id): {}", id);
         return jdbc.query(FIND_FRIENDS_QUERY, userRowMapper, id);
     }
 
     @Override
-    public Collection<User> findCommonFriends(int id, int otherId) {
+    public Collection<User> findCommonFriends(final int id, final int otherId) {
         log.info("Поиск общих друзей между {} и {}", id, otherId);
         return jdbc.query(FIND_COMMON_FRIENDS_QUERY, userRowMapper, id, otherId);
     }
 
     @Override
-    public void removeUser(int id) {
+    public void removeUser(final int id) {
         int affected = jdbc.update(REMOVE_USER_QUERY, id);
         if (affected == 0) {
             throw new NotFoundException("Пользователь с ID " + id + " не найден");

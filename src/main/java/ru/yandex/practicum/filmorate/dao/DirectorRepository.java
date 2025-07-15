@@ -26,23 +26,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DirectorRepository {
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM Directors WHERE director_id = ?";
-    private static final String FIND_ALL_QUERY = "SELECT * FROM Directors";
-    private static final String CREATE_QUERY = "INSERT INTO Directors (name) VALUES (?)";
-    private static final String UPDATE_QUERY = "UPDATE Directors SET name = ? WHERE director_id = ?";
-    private static final String REMOVE_QUERY = "DELETE FROM Directors WHERE director_id = ?";
-    private static final String FIND_ALL_DIRECTORS_BY_FILMS = "SELECT d.*, fd.film_id FROM Directors d " +
-            "JOIN Film_Directors fd ON d.director_id = fd.director_id WHERE fd.film_id IN (:filmIds)";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM directors WHERE director_id = ?";
+    private static final String FIND_ALL_QUERY = "SELECT * FROM directors";
+    private static final String CREATE_QUERY = "INSERT INTO directors (name) VALUES (?)";
+    private static final String UPDATE_QUERY = "UPDATE directors SET name = ? WHERE director_id = ?";
+    private static final String REMOVE_QUERY = "DELETE FROM directors WHERE director_id = ?";
+    private static final String FIND_ALL_DIRECTORS_BY_FILMS = "SELECT d.*, fd.film_id FROM directors d " +
+            "JOIN film_directors fd ON d.director_id = fd.director_id WHERE fd.film_id IN (:filmIds)";
     private static final String FIND_ALL_FILM_SORT_BY_YEAR =
-            "SELECT f.* FROM Films f " +
-                    "JOIN Film_Directors fd ON f.film_id = fd.film_id " +
+            "SELECT f.* FROM films f " +
+                    "JOIN film_directors fd ON f.film_id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date";
     private static final String FIND_ALL_FILM_SORT_BY_LIKES =
-            "SELECT f.* FROM Films f " +
-                    "LEFT JOIN (SELECT film_id, COUNT(user_id) AS likes_count FROM Likes GROUP BY film_id) l " +
+            "SELECT f.* FROM films f " +
+                    "LEFT JOIN (SELECT film_id, COUNT(user_id) AS likes_count FROM likes GROUP BY film_id) l " +
                     "ON f.film_id = l.film_id " +
-                    "JOIN Film_Directors fd ON f.film_id = fd.film_id " +
+                    "JOIN film_directors fd ON f.film_id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY l.likes_count DESC";
 
@@ -51,7 +51,7 @@ public class DirectorRepository {
     private final DirectorRowMapper directorMapper;
     private final FilmRowMapper filmMapper;
 
-    public Director findDirector(int id) {
+    public Director findDirector(final int id) {
         try {
             log.info("Поиск режиссера по id: {}", id);
             return jdbc.queryForObject(FIND_BY_ID_QUERY, directorMapper, id);
@@ -68,7 +68,7 @@ public class DirectorRepository {
                 .collect(Collectors.toMap(Director::getId, Function.identity()));
     }
 
-    public Director create(Director director) {
+    public Director create(final Director director) {
         log.info("Добавляем нового режиссера");
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         try {
@@ -90,7 +90,7 @@ public class DirectorRepository {
         }
     }
 
-    public Director update(Director newDirector) {
+    public Director update(final Director newDirector) {
         log.info("Обновляем режиссера");
         try {
             int rowsUpdated = jdbc.update(UPDATE_QUERY,
@@ -108,7 +108,7 @@ public class DirectorRepository {
         }
     }
 
-    public void removeDirector(int directorId) {
+    public void removeDirector(final int directorId) {
         log.info("Удаление режиссера");
         try {
             jdbc.update(REMOVE_QUERY, directorId);
@@ -129,12 +129,12 @@ public class DirectorRepository {
         log.info("Обновлен список режиссеров фильма (id): {}", film.getId());
     }
 
-    public Collection<Film> sortDirectorByYear(int directorId) {
+    public Collection<Film> sortDirectorByYear(final int directorId) {
         log.info("Поиск всех фильмов одного режиссера отсортированный по году");
         return jdbc.query(FIND_ALL_FILM_SORT_BY_YEAR, filmMapper, directorId);
     }
 
-    public Collection<Film> sortDirectorByLikes(int directorId) {
+    public Collection<Film> sortDirectorByLikes(final int directorId) {
         log.info("Поиск всех фильмов одного режиссера отсортированный по лайкам");
         return jdbc.query(FIND_ALL_FILM_SORT_BY_LIKES, filmMapper, directorId);
     }
@@ -156,4 +156,3 @@ public class DirectorRepository {
         });
     }
 }
-
