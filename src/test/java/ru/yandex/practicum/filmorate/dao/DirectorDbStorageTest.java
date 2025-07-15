@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.dao.mappers.DirectorRowMapper;
+import ru.yandex.practicum.filmorate.dao.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 
@@ -21,10 +22,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({DirectorDbStorage.class, DirectorRowMapper.class})
-public class DirectorDbStorageTest {
+@Import({DirectorRepository.class, DirectorRowMapper.class,
+FilmRowMapper.class})
+class DirectorDbStorageTest {
 
-    private final DirectorDbStorage directorStorage;
+    private final DirectorRepository directorStorage;
     private final JdbcTemplate jdbc;
 
     private Director director;

@@ -12,8 +12,7 @@ import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.dao.mappers.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.service.EventService;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.*;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -26,24 +25,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Import({
-        UserDbStorage.class, UserRowMapper.class,
-        FilmDbStorage.class, FilmRowMapper.class,
-        GenreDbStorage.class, GenreRowMapper.class,
-        RatingDbStorage.class, RatingRowMapper.class,
-        FilmService.class, ReviewDbStorage.class,
+        UserRepository.class, UserRowMapper.class,
+        FilmRepository.class, FilmRowMapper.class,
+        GenreRepository.class, GenreRowMapper.class,
+        RatingRepository.class, RatingRowMapper.class,
+        FilmService.class, RewiewRepository.class,
         ReviewRowMapper.class, EventRowMapper.class,
-        EventDbStorage.class, EventService.class,
-        DirectorDbStorage.class, DirectorRowMapper.class
+        EventRepository.class, EventService.class,
+        DirectorRepository.class, DirectorRowMapper.class,
+        GenreService.class, RatingService.class,
+        DirectorService.class
 })
 class FilmorateApplicationTests {
     private final JdbcTemplate jdbc;
-    private final UserDbStorage userStorage;
-    private final FilmDbStorage filmStorage;
-    private final GenreDbStorage genreStorage;
+    private final UserRepository userStorage;
+    private final FilmRepository filmStorage;
+    private final GenreRepository genreStorage;
     private final FilmService filmService;
-    private final ReviewDbStorage reviewStorage;
-    private final RatingDbStorage ratingStorage;
-    private final DirectorDbStorage directorStorage;
+    private final RewiewRepository reviewStorage;
+    private final RatingRepository ratingStorage;
+    private final DirectorRepository directorStorage;
 
     Director director;
     User user;
@@ -197,6 +198,15 @@ class FilmorateApplicationTests {
     }
 
     @Test
+    void testReturnMostPopularFilmsWithoutFilters() {
+        Collection<Film> result = filmService.getPopularFilms(3, null, null);
+
+        assertThat(result)
+                .extracting(Film::getId)
+                .containsExactly(film1.getId(), film2.getId(), film3.getId());
+    }
+
+    @Test
     void testReturnMostPopularFilmsByYearFilter() {
         Collection<Film> result = filmService.getPopularFilms(3, null, 2021);
 
@@ -318,7 +328,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testSearchByTitle() {
-        List<Film> result = filmStorage.search("чудес", List.of("title"));
+        Collection<Film> result = filmStorage.search("чудес", List.of("title"));
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(Film::getName)
@@ -327,7 +337,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testSearchByDirector() {
-        List<Film> result = filmStorage.search("кэмерон", List.of("director"));
+        Collection<Film> result = filmStorage.search("кэмерон", Collections.singletonList("director"));
 
         assertThat(result).hasSize(3);
         assertThat(result).extracting(Film::getName)
@@ -336,7 +346,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testSearchByTitleAndDirector() {
-        List<Film> result = filmStorage.search("академия", List.of("title", "director"));
+        Collection<Film> result = filmStorage.search("академия", List.of("title", "director"));
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(Film::getName)
@@ -345,7 +355,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testSearchReturnsEmptyList() {
-        List<Film> result = filmStorage.search("несуществующее", List.of("title"));
+        Collection<Film> result = filmStorage.search("несуществующее", List.of("title"));
         assertThat(result).isEmpty();
     }
 
@@ -358,7 +368,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testSortDirectorByYear() {
-        List<Film> sorted = new ArrayList<>(filmStorage.sortDirectorByYear(director.getId()));
+        List<Film> sorted = new ArrayList<>(directorStorage.sortDirectorByYear(director.getId()));
 
         assertThat(sorted).hasSize(3);
         assertThat(sorted).extracting(Film::getName)
@@ -373,7 +383,7 @@ class FilmorateApplicationTests {
         filmStorage.addLike(film3.getId(), userStorage.create(user).getId()); // +1 = 2 лайка
         filmStorage.addLike(film2.getId(), userStorage.create(user).getId()); // Академия чудес 2 — 1 лайк
 
-        List<Film> sorted = new ArrayList<>(filmStorage.sortDirectorByLikes(director.getId()));
+        List<Film> sorted = new ArrayList<>(directorStorage.sortDirectorByLikes(director.getId()));
         assertThat(sorted).hasSize(3);
         assertThat(sorted).extracting(Film::getName)
                 .containsExactly("Закатные твари", "Академия чудес 2", "Академия чудес");

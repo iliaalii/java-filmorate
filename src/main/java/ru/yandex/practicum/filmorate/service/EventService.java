@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.EventDbStorage;
-import ru.yandex.practicum.filmorate.dao.UserDbStorage;
+import ru.yandex.practicum.filmorate.dao.EventRepository;
+import ru.yandex.practicum.filmorate.dao.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
@@ -19,8 +19,8 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Slf4j
 public class EventService {
-    private final EventDbStorage eventStorage;
-    private final UserDbStorage userService;
+    private final EventRepository eventStorage;
+    private final UserRepository userService;
 
     public void createNowEvent(final long userId, final long entityId,
                                final EventType eventType, final OperationType operationType) {

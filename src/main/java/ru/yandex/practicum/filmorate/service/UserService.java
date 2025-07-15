@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
@@ -23,6 +22,7 @@ public class UserService {
     private final EventService eventService;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final DirectorService directorService; //Тут подумать
 
 
     public Collection<User> findAll() {
@@ -76,11 +76,6 @@ public class UserService {
     public Collection<User> findCommonFriends(int id, int otherId) {
         log.info("Обрабатываем запрос на поиск общих друзей между пользователями");
         return userStorage.findCommonFriends(id, otherId);
-    }
-
-    public Collection<Film> recommendFilms(final long userId) {
-        log.trace("Подбираются рекомендации для пользователя с id: {}.", userId);
-        return filmStorage.recommendFilms(userId);
     }
 
     public void removeUser(int id) {
