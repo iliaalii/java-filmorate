@@ -206,7 +206,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public List<Film> search(String query, List<String> by) {
+    public Collection<Film> search(String query, List<String> by) {
         boolean byTitle = by.contains("title");
         boolean byDirector = by.contains("director");
         if (!byTitle && !byDirector) {

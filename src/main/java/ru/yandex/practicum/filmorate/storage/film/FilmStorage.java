@@ -20,7 +20,7 @@ public interface FilmStorage {
 
     void removeLike(int id, int userId);
 
-    List<Film> search(String query, List<String> by);
+    Collection<Film> search(String query, List<String> by);
 
     Collection<Film> recommendFilms(final long userId);
 
