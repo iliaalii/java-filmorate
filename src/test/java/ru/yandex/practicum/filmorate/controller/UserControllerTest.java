@@ -1,4 +1,4 @@
-/*
+
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -7,11 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import ru.yandex.practicum.filmorate.dao.RatingDbStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
@@ -22,7 +22,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserControllerTest {
+class UserControllerTest {
     User user;
 
     @Autowired
@@ -35,7 +35,7 @@ public class UserControllerTest {
     FilmService filmService;
 
     @Autowired
-    RatingDbStorage ratingStorage;
+    RatingService ratingStorage;
 
     @BeforeEach
     void setup() {
@@ -121,8 +121,7 @@ public class UserControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
-   */
-/* @Test
+    @Test
     public void testRecommendFilms() {
         Collection<Rating> ratings = ratingStorage.findAllRating();
         List<Rating> ratingList = new ArrayList<>(ratings);
@@ -163,13 +162,12 @@ public class UserControllerTest {
 
         filmService.addLike(film1.getId(), user2.getId());
 
-        Collection<Film> recommendations = userService.recommendFilms(user2.getId());
+        Collection<Film> recommendations = filmService.getRecommendFilms(user2.getId());
 
         assertNotNull(recommendations);
         Film film3 = film2;
         assertTrue(recommendations.stream().anyMatch(f -> f.getId().equals(film3.getId())));
-    }*//*
-
+    }
 
     @Test
     void testUpdateUserSuccessfully() {
@@ -190,4 +188,4 @@ public class UserControllerTest {
         assertNotNull(response.getBody());
         assertEquals("Updated Name", response.getBody().getName());
     }
-}*/
+}

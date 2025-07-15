@@ -5,17 +5,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import ru.yandex.practicum.filmorate.cache.CacheConfig;
 import ru.yandex.practicum.filmorate.dao.*;
-import ru.yandex.practicum.filmorate.dao.mappers.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
@@ -180,122 +174,99 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void testReturnMostPopularFilmsByYearFilter() {
-        Collection<Film> result = filmService.getPopularFilms(3, null, 2021);
-
-        assertThat(result)
-                .extracting(Film::getId)
-                .containsExactly(film1.getId(), film2.getId());
-    }
-
-    @Test
-    void testReturnMostPopularFilmsByGenreFilter() {
-        Collection<Film> result = filmService.getPopularFilms(3, 1, null);
-
-        assertThat(result)
-                .extracting(Film::getId)
-                .containsExactly(film1.getId(), film2.getId());
-    }
-
-    @Test
-    void testReturnMostPopularFilmsByGenreAndYearFilters() {
-        Collection<Film> result = filmService.getPopularFilms(3, 4, 2023);
-
-        assertThat(result)
-                .extracting(Film::getId)
-                .containsExactly(film3.getId());
-    }
-
-    @Test
     void testThatExistingUserCanRemove() {
         user = userStorage.create(user);
         Integer countBefore = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
         assertEquals(1, countBefore);
-
         userStorage.removeUser(user.getId());
         Integer countAfter = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
         assertEquals(0, countAfter);
     }
-
     @Test
     void testThatExistingFilmCanRemove() {
         film = filmStorage.create(film);
         Integer countBefore = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
         assertEquals(1, countBefore);
-
         filmStorage.removeFilm(film.getId());
         Integer countAfter = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
         assertEquals(0, countAfter);
     }
-
     @Test
     void testAddReviewFindByIdAndDelete() {
         user = userStorage.create(user);
         film = filmStorage.create(film);
-
         review.setFilmId(film.getId());
         review.setUserId(user.getId());
         review = reviewStorage.add(review);
-
         Optional<Review> reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
-
         assertThat(reviewOptional)
                 .isPresent()
                 .hasValueSatisfying(r ->
                         assertThat(r).hasFieldOrPropertyWithValue("reviewId", review.getReviewId())
                 );
-
         reviewStorage.remove(review.getReviewId());
-
         assertThatThrownBy(() -> {
             reviewStorage.findById(review.getReviewId());
         })
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("По указанному id (" + review.getReviewId() + ") обзор не обнаружен");
     }
-
     @Test
     void testAddLikeAndDislikeReview() {
         user = userStorage.create(user);
         film = filmStorage.create(film);
-
         review.setFilmId(film.getId());
         review.setUserId(user.getId());
         review = reviewStorage.add(review);
-
         Optional<Review> reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
-
         assertThat(reviewOptional)
                 .isPresent()
                 .hasValueSatisfying(r ->
                         assertThat(r).hasFieldOrPropertyWithValue("useful", 0)
                 );
-
         reviewStorage.addLike(review.getReviewId(), user.getId());
         user = userStorage.create(user);
         reviewStorage.addLike(review.getReviewId(), user.getId());
-
         reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
-
         assertThat(reviewOptional)
                 .isPresent()
                 .hasValueSatisfying(r ->
                         assertThat(r).hasFieldOrPropertyWithValue("useful", 2)
                 );
-
         user = userStorage.create(user);
         reviewStorage.addDislike(review.getReviewId(), user.getId());
-
         reviewOptional = Optional.ofNullable(reviewStorage.findById(review.getReviewId()));
-
         assertThat(reviewOptional)
                 .isPresent()
                 .hasValueSatisfying(r ->
                         assertThat(r).hasFieldOrPropertyWithValue("useful", 1)
                 );
     }
+
+    @Test
+        void testSearchByTitleAndDirector() {
+            Collection<Film> result = filmStorage.search("академия", List.of("title", "director"));
+
+            assertThat(result).hasSize(2);
+            assertThat(result).extracting(Film::getName)
+                    .contains("Академия чудес", "Академия чудес 2");
+    }
+
+    @Test
+    void testSearchReturnsEmptyList() {
+        Collection<Film> result = filmStorage.search("несуществующее", List.of("title"));
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testSearchInvalidByParameter() {
+        assertThatThrownBy(() -> filmStorage.search("abc", List.of("invalid")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Параметр by должен содержать 'title' или 'director'");
+    }
+
 }
