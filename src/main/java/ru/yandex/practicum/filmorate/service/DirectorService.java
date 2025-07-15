@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.DirectorRepository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
 
@@ -45,5 +48,35 @@ public class DirectorService {
 
     public Set<Director> findDirectorsFilm(final int id) {
         return storage.findDirectorsFilm(id);
+    }
+
+    public Collection<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
+        if (storage.findDirector(directorId) == null) {
+            throw new NotFoundException("Режиссёр с id=" + directorId + " не найден");
+        }
+
+        return switch (sortBy) {
+            case "year" -> storage.sortDirectorByYear(directorId);
+
+            case "likes" -> storage.sortDirectorByLikes(directorId);
+
+            default -> throw new ValidationException("Недопустимый параметр sortBy: " + sortBy);
+        };
+    }
+
+    public void saveFilmDirectors(final Film film) {
+        storage.saveFilmDirectors(film);
+    }
+
+    public void validateDirectors(final Film film) {
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            for (Director director : film.getDirectors()) {
+                try {
+                    storage.findDirector(director.getId());
+                } catch (NotFoundException e) {
+                    throw new ValidationException("Указан несуществующий режиссер: " + director.getId());
+                }
+            }
+        }
     }
 }

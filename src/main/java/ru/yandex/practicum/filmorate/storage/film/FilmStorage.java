@@ -22,10 +22,6 @@ public interface FilmStorage {
 
     List<Film> search(String query, List<String> by);
 
-    Collection<Film> sortDirectorByYear(int directorId);
-
-    Collection<Film> sortDirectorByLikes(int directorId);
-
     Collection<Film> recommendFilms(final long userId);
 
     void removeFilm(int filmId);

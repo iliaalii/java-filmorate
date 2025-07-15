@@ -31,7 +31,7 @@ public class FilmController {
             @PathVariable("directorId") @Positive int directorId,
             @RequestParam String sortBy) {
 
-        return service.sortDirector(directorId, sortBy);
+        return service.getDirectorFilmsSorted(directorId, sortBy);
     }
 
     @GetMapping("/search")

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.RatingRepository;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.Collection;
@@ -27,5 +28,11 @@ public class RatingService {
 
     public Map<Integer, Rating> findAllRatingsByFilm() {
         return storage.findAllRatingsByFilm();
+    }
+
+    public void validateRating(final Film film) {
+        if (film.getMpa() != null) {
+            findRating(film.getMpa().getId());
+        }
     }
 }
