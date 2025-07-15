@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -26,8 +27,8 @@ public class RatingService {
         return storage.findAllRating();
     }
 
-    public Map<Integer, Rating> findAllRatingsByFilm() {
-        return storage.findAllRatingsByFilm();
+    public Map<Integer, Rating> findAllRatingsByFilms(final List<Integer> films) {
+        return storage.findAllRatingsByFilm(films);
     }
 
     public void validateRating(final Film film) {
