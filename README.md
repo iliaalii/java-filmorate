@@ -1,9 +1,9 @@
-# java-filmorate (12 Sprint)
+# Фильморейт
 
-## Диаграмма для p2p проверки
-![изображение](ER-diagram/QuickDBD-12_sprint.png)
+## Схема базы данных
+<img src="src/main/resources/Filmorate_schema.png" alt="Logo">
 
-* [Ссылка](https://app.quickdatabasediagrams.com/#/d/i89NpA) на диограмму.
+* [Ссылка](https://app.quickdatabasediagrams.com/#/d/i89NpA) на .
 * [Скрипт](ER-diagram/QuickDBD-12_sprint.sql) базы данных в SQL на основе H2.
 
 ## Примеры запросов к контроллерам с выгрузкой данных

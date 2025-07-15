@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.DirectorRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -15,42 +17,45 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class DirectorService {
+
     private final DirectorRepository storage;
 
-    public Director findDirector(int id) {
+    public Director findDirector(final int id) {
         log.info("Обрабатываем запрос на поиск режиссера");
-        return storage.findDirector(id);
+
+        return Optional.ofNullable(findAllDirector().get(id))
+                .orElseThrow(() -> new NotFoundException("Режиссер с id " + id + " не найден"));
     }
 
-    public Collection<Director> findAllDirector() {
+    @Cacheable("allDirectors")
+    public Map<Integer, Director> findAllDirector() {
         log.info("Обрабатываем запрос на поиск всех режиссеров");
         return storage.findAllDirectors();
     }
 
-    public Director create(Director director) {
+    @CacheEvict(value = "allDirectors", allEntries = true)
+    public Director create(final Director director) {
         log.info("Обрабатываем запрос на добавление режиссера");
         return storage.create(director);
     }
 
-    public Director update(Director newDirector) {
+    @CacheEvict(value = "allDirectors", allEntries = true)
+    public Director update(final Director newDirector) {
         log.info("Обрабатываем запрос на обновление режиссера");
         return storage.update(newDirector);
     }
 
-    public void removeDirector(int directorId) {
+    @CacheEvict(value = "allDirectors", allEntries = true)
+    public void removeDirector(final int directorId) {
         log.info("Обрабатываем запрос на удаление режиссера");
         storage.removeDirector(directorId);
     }
 
-    public Map<Integer, Set<Director>> findAllDirectorsByFilms() {
-        return storage.findAllDirectorsByFilms();
+    public Map<Integer, Set<Director>> findAllDirectorsByFilms(final List<Integer> filmsIds) {
+        return storage.findAllDirectorsByFilms(filmsIds);
     }
 
-    public Set<Director> findDirectorsFilm(final int id) {
-        return storage.findDirectorsFilm(id);
-    }
-
-    public Collection<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
+    public Collection<Film> getDirectorFilmsSorted(final int directorId, final String sortBy) {
         if (storage.findDirector(directorId) == null) {
             throw new NotFoundException("Режиссёр с id=" + directorId + " не найден");
         }

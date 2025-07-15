@@ -3,14 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
 
@@ -18,6 +15,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class FilmService {
+
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final EventService eventService;
@@ -25,18 +23,17 @@ public class FilmService {
     private final RatingService ratingService;
     private final DirectorService directorService;
 
-
     public Collection<Film> findAll() {
         log.info("Обрабатываем запрос на поиск всех фильмов");
         return enrichFilms(filmStorage.findAll());
     }
 
-    public Film findFilm(int id) {
+    public Film findFilm(final int id) {
         log.info("Обрабатываем запрос на поиск фильма (id): {}", id);
         return enrichFilm(filmStorage.findFilm(id));
     }
 
-    public Film create(Film film) {
+    public Film create(final Film film) {
         log.info("Обрабатываем запрос на добавление фильма");
         validationFilm(film);
 
@@ -48,7 +45,7 @@ public class FilmService {
         return enrichFilm(createdFilm);
     }
 
-    public Film update(Film newFilm) {
+    public Film update(final Film newFilm) {
         log.info("Обрабатываем запрос на обновление фильма");
         validationFilm(newFilm);
 
@@ -59,12 +56,12 @@ public class FilmService {
         return enrichFilm(updatedFilm);
     }
 
-    public void removeFilm(int filmId) {
+    public void removeFilm(final int filmId) {
         log.info("Обрабатываем запрос на удаление фильма (filmId): {}", filmId);
         filmStorage.removeFilm(filmId);
     }
 
-    public void addLike(int id, int userId) {
+    public void addLike(final int id, final int userId) {
         log.info("Обрабатываем запрос на выставление лайка фильму (id): {}, от пользователя (id): {}", id, userId);
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.addLike(id, userId);
@@ -72,7 +69,7 @@ public class FilmService {
         }
     }
 
-    public void removeLike(int id, int userId) {
+    public void removeLike(final int id, final int userId) {
         log.info("Обрабатываем запрос на удаление лайка фильму (id): {}, от пользователя (id): {}", id, userId);
         if (userStorage.findUser(userId) != null && filmStorage.findFilm(id) != null) {
             filmStorage.removeLike(id, userId);
@@ -99,14 +96,14 @@ public class FilmService {
         return enrichFilms(directorService.getDirectorFilmsSorted(directorId, sortBy));
     }
 
-    private void validationFilm(Film film) {
+    private void validationFilm(final Film film) {
         log.info("Проводим проверку валидности");
         ratingService.validateRating(film);
         genreService.validateGenres(film);
         directorService.validateDirectors(film);
     }
 
-    public Collection<Film> search(String query, String by) {
+    public Collection<Film> search(final String query, final String by) {
         log.info("Поиск фильмов по '{}' в: {}", query, by);
         var criteria = Arrays.stream(by.split(","))
                 .map(String::trim)
@@ -120,16 +117,13 @@ public class FilmService {
     }
 
     public Collection<Film> enrichFilms(final Collection<Film> films) {
-        Map<Integer, Rating> ratingMap = ratingService.findAllRatingsByFilm();
-        Map<Integer, Set<Genre>> genresByFilmS = genreService.findAllGenresByFilms();
-        Map<Integer, Set<Director>> directorsMap = directorService.findAllDirectorsByFilms();
-        Map<Integer, Set<Integer>> likesMap = filmStorage.findAllLikes();
+        List<Integer> filmIds = films.stream().map(Film::getId).toList();
 
         for (Film film : films) {
-            film.setGenres(genresByFilmS.getOrDefault(film.getId(), Set.of()));
-            film.setMpa(ratingMap.getOrDefault(film.getId(), null));
-            film.setDirectors(directorsMap.getOrDefault(film.getId(), Set.of()));
-            film.setLikes(likesMap.getOrDefault(film.getId(), Set.of()));
+            film.setGenres(genreService.findAllGenresByFilms(filmIds).getOrDefault(film.getId(), Set.of()));
+            film.setMpa(ratingService.findAllRatingsByFilms(filmIds).getOrDefault(film.getId(), null));
+            film.setDirectors(directorService.findAllDirectorsByFilms(filmIds).getOrDefault(film.getId(), Set.of()));
+            film.setLikes(filmStorage.findAllLikes(filmIds).getOrDefault(film.getId(), Set.of()));
         }
         return films;
     }

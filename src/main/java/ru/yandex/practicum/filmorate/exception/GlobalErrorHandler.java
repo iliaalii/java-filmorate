@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.exception.handler;
+package ru.yandex.practicum.filmorate.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -7,9 +7,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.exception.DataConflictException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.util.stream.Collectors;
 
@@ -72,5 +69,8 @@ public class GlobalErrorHandler {
     public ErrorResponse handleUnexpectedExceptions(final Throwable e) {
         log.error("Внутренняя ошибка сервера: {}", e.getMessage());
         return new ErrorResponse("Внутренняя ошибка сервера", e.getMessage());
+    }
+
+    public record ErrorResponse(String error, String description) {
     }
 }

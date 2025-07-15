@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.enums.OperationType;
 
 import java.sql.Timestamp;
 
-
 @Value
 @Builder
 public class Event {

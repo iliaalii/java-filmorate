@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -30,5 +30,5 @@ public interface FilmStorage {
 
     Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year);
 
-    Map<Integer, Set<Integer>> findAllLikes();
+    Map<Integer, Set<Integer>> findAllLikes(final List<Integer> filmIds);
 }

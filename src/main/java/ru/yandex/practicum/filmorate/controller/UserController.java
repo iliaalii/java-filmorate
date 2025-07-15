@@ -74,13 +74,13 @@ public class UserController {
 
     @GetMapping("/{id}/feed")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Event> getUserEvents(@PathVariable @Positive final long id) {
+    public Collection<Event> getUserEvents(@PathVariable @Positive long id) {
         return eventService.getUserEvents(id);
     }
 
     @GetMapping("/{userId}/recommendations")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> recommendFilms(@PathVariable @Positive final long userId) {
+    public Collection<Film> recommendFilms(@PathVariable @Positive long userId) {
         return filmService.getRecommendFilms(userId);
     }
 
