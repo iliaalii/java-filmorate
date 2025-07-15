@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
@@ -118,16 +117,13 @@ public class FilmService {
     }
 
     public Collection<Film> enrichFilms(final Collection<Film> films) {
-        Map<Integer, Set<Director>> directorsMap = directorService.findAllDirectorsByFilms();
-        Map<Integer, Set<Integer>> likesMap = filmStorage.findAllLikes();
-
         List<Integer> filmIds = films.stream().map(Film::getId).toList();
 
         for (Film film : films) {
             film.setGenres(genreService.findAllGenresByFilms(filmIds).getOrDefault(film.getId(), Set.of()));
             film.setMpa(ratingService.findAllRatingsByFilms(filmIds).getOrDefault(film.getId(), null));
-            film.setDirectors(directorsMap.getOrDefault(film.getId(), Set.of()));
-            film.setLikes(likesMap.getOrDefault(film.getId(), Set.of()));
+            film.setDirectors(directorService.findAllDirectorsByFilms(filmIds).getOrDefault(film.getId(), Set.of()));
+            film.setLikes(filmStorage.findAllLikes(filmIds).getOrDefault(film.getId(), Set.of()));
         }
         return films;
     }

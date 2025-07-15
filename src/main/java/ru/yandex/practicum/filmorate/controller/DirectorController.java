@@ -19,7 +19,7 @@ public class DirectorController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Collection<Director> findAll() {
-        return service.findAllDirector();
+        return service.findAllDirector().values();
     }
 
     @GetMapping("/{id}")

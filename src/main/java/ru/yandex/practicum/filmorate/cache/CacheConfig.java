@@ -22,7 +22,8 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(Caffeine<Object, Object> caffeine) {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("allGenres");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("allGenres",
+                "allRatings", "allDirectors");
         cacheManager.setCaffeine(caffeine);
         return cacheManager;
     }

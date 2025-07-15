@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.mappers.FilmRowMapper;
@@ -13,7 +14,6 @@ import ru.yandex.practicum.filmorate.exception.DataConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.sql.Date;
@@ -33,8 +33,8 @@ public class FilmRepository implements FilmStorage {
             " duration = ?, rating_id = ? WHERE film_id = ?";
     private static final String ADD_LIKE_QUERY = "MERGE INTO Likes (film_id, user_id) VALUES (?, ?)";
     private static final String REMOVE_LIKE_QUERY = "DELETE FROM Likes WHERE film_id = ? AND user_id = ?";
-    private static final String FIND_LIKE_BY_FILM_QUERY = "SELECT user_id FROM Likes WHERE film_id = ?";
-    private static final String FIND_ALL_LIKES = "SELECT film_id, user_id FROM Likes";
+    private static final String FIND_ALL_LIKES_BY_FILMS = "SELECT film_id, user_id FROM Likes " +
+            "WHERE film_id IN (:filmIds)";
     private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
     private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
             " f.duration, f.rating_id FROM Films f" +
@@ -58,9 +58,9 @@ public class FilmRepository implements FilmStorage {
                     "WHERE l1.user_id = ? AND l2.user_id != ? GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
                     "AND l2.film_id IS NULL";
 
+    private final NamedParameterJdbcTemplate namedJdbc;
     private final JdbcTemplate jdbc;
     private final FilmRowMapper mapper;
-    private final RatingRepository ratingStorage;
 
     @Override
     public Collection<Film> findAll() {
@@ -72,13 +72,7 @@ public class FilmRepository implements FilmStorage {
     public Film findFilm(int id) {
         try {
             log.info("Поиск фильма с id: {}", id);
-            Film film = jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
-            assert film != null;
-            film.setLikes(findLikeFilm(id));
-            if (film.getMpa() != null && film.getMpa().getId() != null) {
-                film.setMpa(findRatingsFilm(film.getMpa().getId()));
-            }
-            return film;
+            return jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
         } catch (DataAccessException e) {
             throw new NotFoundException("По указанному id (" + id + ") фильм не обнаружен");
         }
@@ -181,15 +175,12 @@ public class FilmRepository implements FilmStorage {
         return jdbc.query(GET_POPULAR_FILMS, mapper, genreId, genreId, year, year, count);
     }
 
-    private Set<Integer> findLikeFilm(int id) {
-        log.info("Поиск лайков фильма (id): {}", id);
-        return new HashSet<>(jdbc.query(FIND_LIKE_BY_FILM_QUERY,
-                (rs, rowNum) -> rs.getInt("user_id"), id));
-    }
-
-    public Map<Integer, Set<Integer>> findAllLikes() {
+    public Map<Integer, Set<Integer>> findAllLikes(final List<Integer> filmIds) {
         log.info("Поиск лайков для каждого фильма");
-        return jdbc.query(FIND_ALL_LIKES, rs -> {
+
+        Map<String, Object> params = Map.of("filmIds", filmIds);
+
+        return namedJdbc.query(FIND_ALL_LIKES_BY_FILMS, params, rs -> {
             Map<Integer, Set<Integer>> map = new HashMap<>();
             while (rs.next()) {
                 int filmId = rs.getInt("film_id");
@@ -198,11 +189,6 @@ public class FilmRepository implements FilmStorage {
             }
             return map;
         });
-    }
-
-    private Rating findRatingsFilm(int id) {
-        log.info("Отправляем запрос рейтинга для фильма");
-        return ratingStorage.findRating(id);
     }
 
     @Override
