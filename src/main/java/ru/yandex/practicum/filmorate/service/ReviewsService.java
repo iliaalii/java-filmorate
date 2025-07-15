@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.ReviewDbStorage;
+import ru.yandex.practicum.filmorate.dao.RewiewRepository;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
@@ -14,7 +14,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Slf4j
 public class ReviewsService {
-    private final ReviewDbStorage storage;
+    private final RewiewRepository storage;
     private final EventService eventService;
 
 

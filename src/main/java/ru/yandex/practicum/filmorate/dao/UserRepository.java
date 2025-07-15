@@ -22,7 +22,7 @@ import java.util.Collection;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class UserDbStorage implements UserStorage {
+public class UserRepository implements UserStorage {
     private final JdbcTemplate jdbc;
     private final UserRowMapper userRowMapper;
 

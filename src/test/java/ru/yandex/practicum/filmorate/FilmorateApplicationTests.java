@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Import({
+
         UserDbStorage.class, UserRowMapper.class,
         FilmDbStorage.class, FilmRowMapper.class,
         GenreDbStorage.class, GenreRowMapper.class,
@@ -34,15 +35,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         ReviewRowMapper.class, EventRowMapper.class,
         EventDbStorage.class, EventService.class,
         DirectorDbStorage.class, DirectorRowMapper.class
+
 })
 class FilmorateApplicationTests {
     private final JdbcTemplate jdbc;
-    private final UserDbStorage userStorage;
-    private final FilmDbStorage filmStorage;
-    private final GenreDbStorage genreStorage;
+    private final UserRepository userStorage;
+    private final FilmRepository filmStorage;
+    private final GenreRepository genreStorage;
     private final FilmService filmService;
+
     private final ReviewDbStorage reviewStorage;
     private final RatingDbStorage ratingStorage;
+
     User user;
     Film film, film1, film2, film3;
     Review review;

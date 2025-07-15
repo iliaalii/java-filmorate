@@ -10,16 +10,20 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class RatingDbStorage {
+public class RatingRepository {
     private final JdbcTemplate jdbc;
     private final RatingRowMapper mapper;
 
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM Rating  WHERE rating_id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM rating ";
+    private static final String FIND_ALL_RATINGS_BY_FILMS = "SELECT f.film_id, r.rating_id, r.name FROM Films f " +
+            "JOIN Rating r ON f.rating_id = r.rating_id";
 
     public Rating findRating(int id) {
         try {
@@ -33,5 +37,20 @@ public class RatingDbStorage {
     public Collection<Rating> findAllRating() {
         log.info("Поиск всех доступных рейтингов");
         return jdbc.query(FIND_ALL_QUERY, mapper);
+    }
+
+    public Map<Integer, Rating> findAllRatingsByFilm() {
+        log.info("Поиск рейтинга для всех фильмов");
+        return jdbc.query(FIND_ALL_RATINGS_BY_FILMS, rs -> {
+            Map<Integer, Rating> map = new HashMap<>();
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                Rating rating = new Rating();
+                rating.setId(rs.getInt("rating_id"));
+                rating.setName(rs.getString("name"));
+                map.put(filmId, rating);
+            }
+            return map;
+        });
     }
 }
