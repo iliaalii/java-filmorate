@@ -184,6 +184,7 @@ class FilmorateApplicationTests {
                 "SELECT COUNT(*) FROM USERS WHERE USER_ID = " + user.getId(), Integer.class);
         assertEquals(0, countAfter);
     }
+
     @Test
     void testThatExistingFilmCanRemove() {
         film = filmStorage.create(film);
@@ -195,6 +196,7 @@ class FilmorateApplicationTests {
                 "SELECT COUNT(*) FROM FILMS WHERE FILM_ID = " + film.getId(), Integer.class);
         assertEquals(0, countAfter);
     }
+
     @Test
     void testAddReviewFindByIdAndDelete() {
         user = userStorage.create(user);
@@ -215,6 +217,7 @@ class FilmorateApplicationTests {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("По указанному id (" + review.getReviewId() + ") обзор не обнаружен");
     }
+
     @Test
     void testAddLikeAndDislikeReview() {
         user = userStorage.create(user);
@@ -248,12 +251,12 @@ class FilmorateApplicationTests {
     }
 
     @Test
-        void testSearchByTitleAndDirector() {
-            Collection<Film> result = filmStorage.search("академия", List.of("title", "director"));
+    void testSearchByTitleAndDirector() {
+        Collection<Film> result = filmStorage.search("академия", List.of("title", "director"));
 
-            assertThat(result).hasSize(2);
-            assertThat(result).extracting(Film::getName)
-                    .contains("Академия чудес", "Академия чудес 2");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(Film::getName)
+                .contains("Академия чудес", "Академия чудес 2");
     }
 
     @Test

@@ -130,12 +130,12 @@ class UserControllerTest {
         User user1 = new User();
         user1.setLogin("user1");
         user1.setEmail("novacancy@mail.ru");
-        user1.setBirthday(LocalDate.of(2025,7, 12));
+        user1.setBirthday(LocalDate.of(2025, 7, 12));
 
         User user2 = new User();
         user2.setLogin("user2");
         user2.setEmail("vacancy@mail.ru");
-        user2.setBirthday(LocalDate.of(2025,7, 12));
+        user2.setBirthday(LocalDate.of(2025, 7, 12));
 
         user1 = userService.create(user1);
         user2 = userService.create(user2);
@@ -143,14 +143,14 @@ class UserControllerTest {
         Film film1 = new Film();
         film1.setName("Фильм_А");
         film1.setDescription("Очевидно это фильм А.");
-        film1.setReleaseDate(LocalDate.of(2025, 7,12));
+        film1.setReleaseDate(LocalDate.of(2025, 7, 12));
         film1.setDuration(120);
         film1.setMpa(secondRating);
 
         Film film2 = new Film();
         film2.setName("Фильм_Б");
         film2.setDescription("Очевидно это фильм Б.");
-        film2.setReleaseDate(LocalDate.of(2025, 7,12));
+        film2.setReleaseDate(LocalDate.of(2025, 7, 12));
         film2.setDuration(120);
         film2.setMpa(thirdRating);
 

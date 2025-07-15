@@ -1,4 +1,5 @@
 package ru.yandex.practicum.filmorate.dao;
+
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -33,6 +35,7 @@ class DirectorDbStorageTest {
         director = new Director();
         director.setName("Кристофер Нолан");
     }
+
     @Test
     void testCreateAndFindDirector() {
         director = directorStorage.create(director);
@@ -42,6 +45,7 @@ class DirectorDbStorageTest {
                 .hasValueSatisfying(d ->
                         assertThat(d).hasFieldOrPropertyWithValue("name", "Кристофер Нолан"));
     }
+
     @Test
     void testUpdateDirector() {
         director = directorStorage.create(director);
@@ -50,6 +54,7 @@ class DirectorDbStorageTest {
         Director updated = directorStorage.findDirector(director.getId());
         assertThat(updated.getName()).isEqualTo("Обновленный режиссер");
     }
+
     @Test
     void testFindAllDirectors() {
         directorStorage.create(director);
@@ -57,6 +62,7 @@ class DirectorDbStorageTest {
         assertThat(all).isNotEmpty();
         assertThat(all.stream().anyMatch(d -> d.getName().equals("Кристофер Нолан"))).isTrue();
     }
+
     @Test
     void testRemoveDirector() {
         director = directorStorage.create(director);
@@ -66,6 +72,7 @@ class DirectorDbStorageTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Указанный режиссер не найден");
     }
+
     @Test
     void testFindNonExistentDirector() {
         assertThatThrownBy(() -> directorStorage.findDirector(9999))

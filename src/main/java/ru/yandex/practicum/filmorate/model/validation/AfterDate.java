@@ -10,7 +10,10 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = AfterDateValidator.class)
 public @interface AfterDate {
     String message() default "Дата должна быть позднее {value}";
+
     String value();
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }
