@@ -2,6 +2,8 @@ spring:
   main:
     log-startup-info: false
     banner-mode: off
+  cache:
+    type: caffeine
 
   sql:
     init.mode: always

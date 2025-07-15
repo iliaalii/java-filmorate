@@ -1,14 +1,16 @@
-/*
 package ru.yandex.practicum.filmorate;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.cache.CacheConfig;
 import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.dao.mappers.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -23,30 +25,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@JdbcTest
-@AutoConfigureTestDatabase
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) // если используешь constructor injection
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({
-
-        UserDbStorage.class, UserRowMapper.class,
-        FilmDbStorage.class, FilmRowMapper.class,
-        GenreDbStorage.class, GenreRowMapper.class,
-        RatingDbStorage.class, RatingRowMapper.class,
-        FilmService.class, ReviewDbStorage.class,
-        ReviewRowMapper.class, EventRowMapper.class,
-        EventDbStorage.class, EventService.class,
-        DirectorDbStorage.class, DirectorRowMapper.class
-
-})
 class FilmorateApplicationTests {
     private final JdbcTemplate jdbc;
     private final UserRepository userStorage;
     private final FilmRepository filmStorage;
     private final GenreRepository genreStorage;
     private final FilmService filmService;
-
-    private final ReviewDbStorage reviewStorage;
-    private final RatingDbStorage ratingStorage;
+    private final ReviewRepository reviewStorage;
+    private final RatingRepository ratingStorage;
 
     User user;
     Film film, film1, film2, film3;
@@ -59,7 +48,7 @@ class FilmorateApplicationTests {
         user.setEmail("test@mail.com");
         user.setBirthday(LocalDate.now());
 
-        Collection<Genre> genres = genreStorage.findAllGenre();
+        Collection<Genre> genres = genreStorage.findAllGenre().values();
         List<Genre> genreList = new ArrayList<>(genres);
         Genre firstGenre = genreList.get(0);
         Genre fourthGenre = genreList.get(3);
@@ -186,7 +175,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testGetGenres() {
-        Collection<Genre> genres = genreStorage.findAllGenre();
+        Collection<Genre> genres = genreStorage.findAllGenre().values();
         assertThat(genres).size().isEqualTo(6);
     }
 
@@ -309,4 +298,4 @@ class FilmorateApplicationTests {
                         assertThat(r).hasFieldOrPropertyWithValue("useful", 1)
                 );
     }
-}*/
+}

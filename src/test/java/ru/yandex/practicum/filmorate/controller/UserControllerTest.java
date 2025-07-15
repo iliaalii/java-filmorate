@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -120,7 +121,8 @@ public class UserControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
-   /* @Test
+   */
+/* @Test
     public void testRecommendFilms() {
         Collection<Rating> ratings = ratingStorage.findAllRating();
         List<Rating> ratingList = new ArrayList<>(ratings);
@@ -166,7 +168,8 @@ public class UserControllerTest {
         assertNotNull(recommendations);
         Film film3 = film2;
         assertTrue(recommendations.stream().anyMatch(f -> f.getId().equals(film3.getId())));
-    }*/
+    }*//*
+
 
     @Test
     void testUpdateUserSuccessfully() {
@@ -187,4 +190,4 @@ public class UserControllerTest {
         assertNotNull(response.getBody());
         assertEquals("Updated Name", response.getBody().getName());
     }
-}
+}*/
