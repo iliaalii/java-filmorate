@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GenreRepository {
     private final NamedParameterJdbcTemplate namedJdbc;
-    private final JdbcTemplate jdbc;
     private final GenreRowMapper mapper;
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM genres";
@@ -34,7 +33,7 @@ public class GenreRepository {
 
     public Map<Integer, Genre> findAllGenre() {
         log.info("Поиск всех доступных жанров");
-        List<Genre> genres = jdbc.query(FIND_ALL_QUERY, mapper);
+        List<Genre> genres = namedJdbc.getJdbcOperations().query(FIND_ALL_QUERY, mapper);
         return genres.stream()
                 .collect(Collectors.toMap(Genre::getId, genre -> genre));
     }
@@ -59,8 +58,8 @@ public class GenreRepository {
 
     public void saveFilmGenre(final Film film) {
         Set<Genre> genres = film.getGenres();
-        jdbc.update(CLEAR_GENRE_BY_FILM_QUERY, film.getId());
-        jdbc.batchUpdate(ADD_GENRE_BY_FILM_QUERY, new BatchPreparedStatementSetter() {
+        namedJdbc.getJdbcOperations().update(CLEAR_GENRE_BY_FILM_QUERY, film.getId());
+        namedJdbc.getJdbcOperations().batchUpdate(ADD_GENRE_BY_FILM_QUERY, new BatchPreparedStatementSetter() {
             public void setValues(@NonNull PreparedStatement ps, int i) throws SQLException {
                 Genre genre = genres.stream().toList().get(i);
                 ps.setInt(1, film.getId());

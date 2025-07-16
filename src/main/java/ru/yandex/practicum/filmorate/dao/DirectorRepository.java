@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.mappers.DirectorRowMapper;
@@ -33,6 +34,8 @@ public class DirectorRepository {
     private static final String REMOVE_QUERY = "DELETE FROM directors WHERE director_id = ?";
     private static final String FIND_ALL_DIRECTORS_BY_FILMS = "SELECT d.*, fd.film_id FROM directors d " +
             "JOIN film_directors fd ON d.director_id = fd.director_id WHERE fd.film_id IN (:filmIds)";
+    private static final String FIND_ALL_DIRECTORS_BY_FILM = "SELECT director_id FROM directors " +
+            "WHERE director_id IN (:ids)";
     private static final String FIND_ALL_FILM_SORT_BY_YEAR =
             "SELECT f.* FROM films f " +
                     "JOIN film_directors fd ON f.film_id = fd.film_id " +
@@ -47,14 +50,13 @@ public class DirectorRepository {
                     "ORDER BY l.likes_count DESC";
 
     private final NamedParameterJdbcTemplate namedJdbc;
-    private final JdbcTemplate jdbc;
     private final DirectorRowMapper directorMapper;
     private final FilmRowMapper filmMapper;
 
     public Director findDirector(final int id) {
         try {
             log.info("Поиск режиссера по id: {}", id);
-            return jdbc.queryForObject(FIND_BY_ID_QUERY, directorMapper, id);
+            return namedJdbc.getJdbcOperations().queryForObject(FIND_BY_ID_QUERY, directorMapper, id);
         } catch (DataAccessException e) {
             throw new NotFoundException("Указанный режиссер не найден!");
         }
@@ -62,7 +64,7 @@ public class DirectorRepository {
 
     public Map<Integer, Director> findAllDirectors() {
         log.info("Поиск всех доступных режиссеров");
-        List<Director> directors = jdbc.query(FIND_ALL_QUERY, directorMapper);
+        List<Director> directors = namedJdbc.getJdbcOperations().query(FIND_ALL_QUERY, directorMapper);
 
         return directors.stream()
                 .collect(Collectors.toMap(Director::getId, Function.identity()));
@@ -72,7 +74,7 @@ public class DirectorRepository {
         log.info("Добавляем нового режиссера");
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         try {
-            jdbc.update(con -> {
+            namedJdbc.getJdbcOperations().update(con -> {
                 PreparedStatement ps = con.prepareStatement(CREATE_QUERY, Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, director.getName());
                 return ps;
@@ -93,7 +95,7 @@ public class DirectorRepository {
     public Director update(final Director newDirector) {
         log.info("Обновляем режиссера");
         try {
-            int rowsUpdated = jdbc.update(UPDATE_QUERY,
+            int rowsUpdated = namedJdbc.getJdbcOperations().update(UPDATE_QUERY,
                     newDirector.getName(),
                     newDirector.getId());
 
@@ -111,7 +113,7 @@ public class DirectorRepository {
     public void removeDirector(final int directorId) {
         log.info("Удаление режиссера");
         try {
-            jdbc.update(REMOVE_QUERY, directorId);
+            namedJdbc.getJdbcOperations().update(REMOVE_QUERY, directorId);
             log.info("Режиссер удален");
         } catch (DataIntegrityViolationException e) {
             throw new ValidationException("Ошибка валидации при сохранении в БД");
@@ -119,24 +121,30 @@ public class DirectorRepository {
     }
 
     public void saveFilmDirectors(final Film film) {
-        jdbc.update("DELETE FROM film_directors WHERE film_id = ?", film.getId());
+        namedJdbc.getJdbcOperations().update("DELETE FROM film_directors WHERE film_id = ?", film.getId());
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            String ins = "INSERT INTO film_directors (film_id, director_id) VALUES (?, ?)";
-            for (Director d : film.getDirectors()) {
-                jdbc.update(ins, film.getId(), d.getId());
-            }
+            Set<Director> directors = film.getDirectors();
+            String ins = "INSERT INTO film_directors (film_id, director_id) VALUES (:filmId, :directorId)";
+
+            List<MapSqlParameterSource> batchParams = directors.stream()
+                    .map(d -> new MapSqlParameterSource()
+                            .addValue("filmId", film.getId())
+                            .addValue("directorId", d.getId()))
+                    .toList();
+
+            namedJdbc.batchUpdate(ins, batchParams.toArray(new SqlParameterSource[0]));
         }
         log.info("Обновлен список режиссеров фильма (id): {}", film.getId());
     }
 
     public Collection<Film> sortDirectorByYear(final int directorId) {
         log.info("Поиск всех фильмов одного режиссера отсортированный по году");
-        return jdbc.query(FIND_ALL_FILM_SORT_BY_YEAR, filmMapper, directorId);
+        return namedJdbc.getJdbcOperations().query(FIND_ALL_FILM_SORT_BY_YEAR, filmMapper, directorId);
     }
 
     public Collection<Film> sortDirectorByLikes(final int directorId) {
         log.info("Поиск всех фильмов одного режиссера отсортированный по лайкам");
-        return jdbc.query(FIND_ALL_FILM_SORT_BY_LIKES, filmMapper, directorId);
+        return namedJdbc.getJdbcOperations().query(FIND_ALL_FILM_SORT_BY_LIKES, filmMapper, directorId);
     }
 
     public Map<Integer, Set<Director>> findAllDirectorsByFilms(final List<Integer> filmIds) {
@@ -154,5 +162,12 @@ public class DirectorRepository {
             }
             return map;
         });
+    }
+
+    public List<Integer> findAllDirectorsByFilm(Set<Integer> ids) {
+        Map<String, Object> params = Map.of("ids", ids);
+
+        return namedJdbc.query(FIND_ALL_DIRECTORS_BY_FILM, params,
+                (rs, rowNum) -> rs.getInt("director_id"));
     }
 }
