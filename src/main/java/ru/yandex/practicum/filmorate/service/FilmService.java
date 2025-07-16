@@ -3,7 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -118,12 +121,16 @@ public class FilmService {
 
     public Collection<Film> enrichFilms(final Collection<Film> films) {
         List<Integer> filmIds = films.stream().map(Film::getId).toList();
+        Map<Integer, Set<Genre>> genresFilms = genreService.findAllGenresByFilms(filmIds);
+        Map<Integer, Rating> ratingsFilms = ratingService.findAllRatingsByFilms(filmIds);
+        Map<Integer, Set<Director>> directorsFilms = directorService.findAllDirectorsByFilms(filmIds);
+        Map<Integer, Set<Integer>> likesFilms = filmStorage.findAllLikes(filmIds);
 
         for (Film film : films) {
-            film.setGenres(genreService.findAllGenresByFilms(filmIds).getOrDefault(film.getId(), Set.of()));
-            film.setMpa(ratingService.findAllRatingsByFilms(filmIds).getOrDefault(film.getId(), null));
-            film.setDirectors(directorService.findAllDirectorsByFilms(filmIds).getOrDefault(film.getId(), Set.of()));
-            film.setLikes(filmStorage.findAllLikes(filmIds).getOrDefault(film.getId(), Set.of()));
+            film.setGenres(genresFilms.getOrDefault(film.getId(), Set.of()));
+            film.setMpa(ratingsFilms.get(film.getId()));
+            film.setDirectors(directorsFilms.getOrDefault(film.getId(), Set.of()));
+            film.setLikes(likesFilms.getOrDefault(film.getId(), Set.of()));
         }
         return films;
     }

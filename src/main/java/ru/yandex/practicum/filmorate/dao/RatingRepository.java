@@ -15,7 +15,6 @@ import java.util.*;
 @Slf4j
 public class RatingRepository {
     private final NamedParameterJdbcTemplate namedJdbc;
-    private final JdbcTemplate jdbc;
 
     private final RatingRowMapper mapper;
 
@@ -26,7 +25,7 @@ public class RatingRepository {
 
     public Collection<Rating> findAllRating() {
         log.info("Поиск всех доступных рейтингов");
-        return jdbc.query(FIND_ALL_QUERY, mapper);
+        return namedJdbc.getJdbcOperations().query(FIND_ALL_QUERY, mapper);
     }
 
     public Map<Integer, Rating> findAllRatingsByFilm(final List<Integer> filmIds) {

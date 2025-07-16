@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,12 +76,15 @@ public class DirectorService {
 
     public void validateDirectors(final Film film) {
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            for (Director director : film.getDirectors()) {
-                try {
-                    storage.findDirector(director.getId());
-                } catch (NotFoundException e) {
-                    throw new ValidationException("Указан несуществующий режиссер: " + director.getId());
-                }
+            Set<Integer> idsDirectors = film.getDirectors().stream()
+                    .map(Director::getId)
+                    .collect(Collectors.toSet());
+            Set<Integer> directorsInDb = new HashSet<>(storage.findAllDirectorsByFilm(idsDirectors));
+            List<Integer> missing = idsDirectors.stream()
+                    .filter(id -> !directorsInDb.contains(id))
+                    .toList();
+            if (!missing.isEmpty()) {
+                throw new ValidationException("Найдены несуществующие режиссёры: " + missing);
             }
         }
     }

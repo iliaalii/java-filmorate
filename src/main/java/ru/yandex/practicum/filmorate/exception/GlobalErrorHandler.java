@@ -66,7 +66,7 @@ public class GlobalErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleUnexpectedExceptions(final Throwable e) {
+    public ErrorResponse handleUnexpectedExceptions(final Exception e) {
         log.error("Внутренняя ошибка сервера: {}", e.getMessage());
         return new ErrorResponse("Внутренняя ошибка сервера", e.getMessage());
     }

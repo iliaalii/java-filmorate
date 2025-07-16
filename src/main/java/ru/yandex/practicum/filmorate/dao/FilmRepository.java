@@ -59,20 +59,19 @@ public class FilmRepository implements FilmStorage {
                     "AND l2.film_id IS NULL";
 
     private final NamedParameterJdbcTemplate namedJdbc;
-    private final JdbcTemplate jdbc;
     private final FilmRowMapper mapper;
 
     @Override
     public Collection<Film> findAll() {
         log.info("Поиск всех фильмов");
-        return jdbc.query(FIND_ALL_QUERY, mapper);
+        return namedJdbc.getJdbcOperations().query(FIND_ALL_QUERY, mapper);
     }
 
     @Override
     public Film findFilm(final int id) {
         try {
             log.info("Поиск фильма с id: {}", id);
-            return jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
+            return namedJdbc.getJdbcOperations().queryForObject(FIND_BY_ID_QUERY, mapper, id);
         } catch (DataAccessException e) {
             throw new NotFoundException("По указанному id (" + id + ") фильм не обнаружен");
         }
@@ -84,7 +83,7 @@ public class FilmRepository implements FilmStorage {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         try {
-            jdbc.update(con -> {
+            namedJdbc.getJdbcOperations().update(con -> {
                 PreparedStatement ps = con.prepareStatement(CREATE_QUERY, Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, film.getName());
                 ps.setString(2, film.getDescription());
@@ -114,7 +113,7 @@ public class FilmRepository implements FilmStorage {
     public Film update(final Film newFilm) {
         log.info("Обновляем фильм");
         try {
-            int rowsUpdated = jdbc.update(UPDATE_QUERY,
+            int rowsUpdated = namedJdbc.getJdbcOperations().update(UPDATE_QUERY,
                     newFilm.getName(),
                     newFilm.getDescription(),
                     Date.valueOf(newFilm.getReleaseDate()),
@@ -134,7 +133,7 @@ public class FilmRepository implements FilmStorage {
     @Override
     public void addLike(final int id, final int userId) {
         try {
-            jdbc.update(ADD_LIKE_QUERY, id, userId);
+            namedJdbc.getJdbcOperations().update(ADD_LIKE_QUERY, id, userId);
             log.info("Пользователь (id): {}, поставил лайк фильму (id): {}", userId, id);
         } catch (DataAccessException e) {
             throw new DataConflictException("Лайк уже поставлен");
@@ -143,14 +142,14 @@ public class FilmRepository implements FilmStorage {
 
     @Override
     public void removeLike(final int id, final int userId) {
-        jdbc.update(REMOVE_LIKE_QUERY, id, userId);
+        namedJdbc.getJdbcOperations().update(REMOVE_LIKE_QUERY, id, userId);
         log.info("Пользователь (id): {}, убрал лайк фильму (id): {}", userId, id);
     }
 
     public Collection<Film> recommendFilms(final long userId) {
         log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
         try {
-            return jdbc.query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
+            return namedJdbc.getJdbcOperations().query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
         } catch (EmptyResultDataAccessException e) {
             log.trace("Рекомендаций для пользователя с id: {} не найдено.", userId);
             return List.of();
@@ -158,7 +157,7 @@ public class FilmRepository implements FilmStorage {
     }
 
     public void removeFilm(int filmId) {
-        int affected = jdbc.update(REMOVE_FILM_QUERY, filmId);
+        int affected = namedJdbc.getJdbcOperations().update(REMOVE_FILM_QUERY, filmId);
         if (affected == 0) {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
@@ -167,11 +166,11 @@ public class FilmRepository implements FilmStorage {
 
     public Collection<Film> getCommonFilms(final int id, final int friendId) {
         log.trace("Получение общих фильмов из базы данных.");
-        return jdbc.query(GET_COMMON_FILMS, mapper, id, friendId);
+        return namedJdbc.getJdbcOperations().query(GET_COMMON_FILMS, mapper, id, friendId);
     }
 
     public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
-        return jdbc.query(GET_POPULAR_FILMS, mapper, genreId, genreId, year, year, count);
+        return namedJdbc.getJdbcOperations().query(GET_POPULAR_FILMS, mapper, genreId, genreId, year, year, count);
     }
 
     public Map<Integer, Set<Integer>> findAllLikes(final List<Integer> filmIds) {
@@ -223,6 +222,6 @@ public class FilmRepository implements FilmStorage {
         sql.append(String.join(" OR ", cond));
         sql.append(" GROUP BY f.film_id ORDER BY likes_count DESC");
 
-        return jdbc.query(sql.toString(), mapper, params.toArray());
+        return namedJdbc.getJdbcOperations().query(sql.toString(), mapper, params.toArray());
     }
 }
