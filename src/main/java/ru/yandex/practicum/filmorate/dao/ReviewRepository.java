@@ -23,8 +23,6 @@ import java.util.Collection;
 public class ReviewRepository {
     private final JdbcTemplate jdbc;
     private final ReviewRowMapper mapper;
-    private final FilmRepository filmStorage;
-    private final UserRepository userStorage;
 
     private static final String ADD_QUERY = "INSERT INTO reviews (film_id, user_id, content, is_positive) " +
             "VALUES (?, ?, ?, ?)";
@@ -47,7 +45,6 @@ public class ReviewRepository {
 
     public Review add(final Review review) {
         log.info("Добавляем новый обзор");
-        checkRelevance(review);
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         try {
@@ -76,7 +73,6 @@ public class ReviewRepository {
     public Review update(final Review newReview) {
         log.info("Обновляем обзор");
         findById(newReview.getReviewId());
-        checkRelevance(newReview);
         try {
             int rowsUpdated = jdbc.update(UPDATE_QUERY,
                     newReview.getContent(),
@@ -128,11 +124,5 @@ public class ReviewRepository {
     public void removeDislike(final int filmId, final int userId) {
         log.info("Добавлен дизлайк фильму {} от пользователя {} был удален", filmId, userId);
         jdbc.update(REMOVE_LIKE_QUERY, filmId, userId);
-    }
-
-    private void checkRelevance(Review review) {
-        log.info("Проводим проверку наличия пользователя и фильма");
-        filmStorage.findFilm(review.getFilmId());
-        userStorage.findUser(review.getUserId());
     }
 }

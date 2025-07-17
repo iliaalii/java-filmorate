@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.FilmRepository;
 import ru.yandex.practicum.filmorate.dao.ReviewRepository;
+import ru.yandex.practicum.filmorate.dao.UserRepository;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
@@ -17,8 +19,11 @@ public class ReviewsService {
 
     private final ReviewRepository storage;
     private final EventService eventService;
+    private final FilmRepository filmStorage;
+    private final UserRepository userStorage;
 
     public Review add(final Review review) {
+        checkRelevance(review);
         Review savedReview = storage.add(review);
         eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW, OperationType.ADD);
 
@@ -26,6 +31,7 @@ public class ReviewsService {
     }
 
     public Review update(final Review review) {
+        checkRelevance(review);
         Review savedReview = storage.update(review);
         eventService.createNowEvent(savedReview.getUserId(), savedReview.getReviewId(), EventType.REVIEW, OperationType.UPDATE);
 
@@ -61,5 +67,11 @@ public class ReviewsService {
 
     public void removeDislike(final int reviewId, final int userId) {
         storage.removeDislike(reviewId, userId);
+    }
+
+    private void checkRelevance(Review review) {
+        log.info("Проводим проверку наличия пользователя и фильма");
+        filmStorage.findFilm(review.getFilmId());
+        userStorage.findUser(review.getUserId());
     }
 }
