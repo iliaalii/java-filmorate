@@ -1,3 +1,4 @@
+
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -6,18 +7,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.RatingService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserControllerTest {
+class UserControllerTest {
     User user;
 
     @Autowired
     TestRestTemplate restTemplate;
+
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    FilmService filmService;
+
+    @Autowired
+    RatingService ratingStorage;
 
     @BeforeEach
     void setup() {
@@ -101,6 +119,54 @@ public class UserControllerTest {
 
         response = restTemplate.postForEntity("/users", user, User.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void testRecommendFilms() {
+        Collection<Rating> ratings = ratingStorage.findAllRating();
+        List<Rating> ratingList = new ArrayList<>(ratings);
+        Rating secondRating = ratingList.get(1);
+        Rating thirdRating = ratingList.get(2);
+        User user1 = new User();
+        user1.setLogin("user1");
+        user1.setEmail("novacancy@mail.ru");
+        user1.setBirthday(LocalDate.of(2025, 7, 12));
+
+        User user2 = new User();
+        user2.setLogin("user2");
+        user2.setEmail("vacancy@mail.ru");
+        user2.setBirthday(LocalDate.of(2025, 7, 12));
+
+        user1 = userService.create(user1);
+        user2 = userService.create(user2);
+
+        Film film1 = new Film();
+        film1.setName("Фильм_А");
+        film1.setDescription("Очевидно это фильм А.");
+        film1.setReleaseDate(LocalDate.of(2025, 7, 12));
+        film1.setDuration(120);
+        film1.setMpa(secondRating);
+
+        Film film2 = new Film();
+        film2.setName("Фильм_Б");
+        film2.setDescription("Очевидно это фильм Б.");
+        film2.setReleaseDate(LocalDate.of(2025, 7, 12));
+        film2.setDuration(120);
+        film2.setMpa(thirdRating);
+
+        film1 = filmService.create(film1);
+        film2 = filmService.create(film2);
+
+        filmService.addLike(film1.getId(), user1.getId());
+        filmService.addLike(film2.getId(), user1.getId());
+
+        filmService.addLike(film1.getId(), user2.getId());
+
+        Collection<Film> recommendations = filmService.getRecommendFilms(user2.getId());
+
+        assertNotNull(recommendations);
+        Film film3 = film2;
+        assertTrue(recommendations.stream().anyMatch(f -> f.getId().equals(film3.getId())));
     }
 
     @Test

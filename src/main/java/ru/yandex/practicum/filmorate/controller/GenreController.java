@@ -20,7 +20,7 @@ public class GenreController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Collection<Genre> findAll() {
-        return service.findAllGenre();
+        return service.findAllGenre().values();
     }
 
     @GetMapping("/{id}")

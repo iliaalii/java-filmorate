@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +25,19 @@ public class FilmController {
         return service.findAll();
     }
 
+    @GetMapping("/director/{directorId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> findAllSortDirector(@PathVariable("directorId") @Positive int directorId,
+                                                @RequestParam String sortBy) {
+        return service.getDirectorFilmsSorted(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> search(@RequestParam @NotBlank String query, @RequestParam String by) {
+        return service.search(query, by);
+    }
+
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Film findFilm(@PathVariable @Positive int id) {
@@ -39,7 +52,7 @@ public class FilmController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Film update(@Valid @RequestBody Film newFilm) {
+    public Film update(@RequestBody Film newFilm) {
         return service.update(newFilm);
     }
 
@@ -50,14 +63,30 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void removeLike(@PathVariable @Positive int id, @PathVariable @Positive int userId) {
         service.removeLike(id, userId);
     }
 
     @GetMapping("/popular")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") @Positive Integer count) {
-        return service.getPopularFilms(count);
+    public Collection<Film> getPopularFilms(
+            @RequestParam(defaultValue = "10") @Positive final Integer count,
+            @RequestParam(required = false) @Positive final Integer genreId,
+            @RequestParam(required = false) @Positive final Integer year) {
+        return service.getPopularFilms(count, genreId, year);
+
+    }
+
+    @DeleteMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFilm(@PathVariable int filmId) {
+        service.removeFilm(filmId);
+    }
+
+    @GetMapping("/common")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> getCommonFilms(@RequestParam final int userId, @RequestParam final int friendId) {
+        return service.getCommonFilms(userId, friendId);
     }
 }

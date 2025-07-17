@@ -1,0 +1,226 @@
+package ru.yandex.practicum.filmorate.dao;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.mappers.FilmRowMapper;
+import ru.yandex.practicum.filmorate.exception.DataConflictException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+
+import java.sql.Date;
+import java.sql.*;
+import java.util.*;
+
+@Repository
+@RequiredArgsConstructor
+@Slf4j
+public class FilmRepository implements FilmStorage {
+
+    private static final String FIND_ALL_QUERY = "SELECT * FROM films";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE film_id = ?";
+    private static final String CREATE_QUERY = "INSERT INTO films (name, description, release_date, duration," +
+            " rating_id) VALUES (?, ?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE films SET name = ?,description = ?, release_date = ?," +
+            " duration = ?, rating_id = ? WHERE film_id = ?";
+    private static final String ADD_LIKE_QUERY = "MERGE INTO likes (film_id, user_id) VALUES (?, ?)";
+    private static final String REMOVE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
+    private static final String FIND_ALL_LIKES_BY_FILMS = "SELECT film_id, user_id FROM likes " +
+            "WHERE film_id IN (:filmIds)";
+    private static final String REMOVE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
+    private static final String GET_COMMON_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
+            " f.duration, f.rating_id FROM films f" +
+            " JOIN likes l1 ON f.film_id = l1.film_id AND l1.user_id = ?" +
+            " JOIN likes l2 ON f.film_id = l2.film_id AND l2.user_id = ?" +
+            " ORDER BY (SELECT COUNT(*) FROM likes l WHERE l.film_id = f.film_id) DESC";
+    private static final String GET_POPULAR_FILMS = "SELECT f.film_id, f.name, f.description, f.release_date," +
+            " f.duration, f.rating_id, COUNT(l.user_id) AS likes_count FROM films AS f " +
+            "LEFT JOIN likes l ON f.film_id = l.film_id LEFT JOIN films_Genres fg ON f.film_id = fg.film_id " +
+            "LEFT JOIN genres g ON fg.genre_id = g.genre_id " +
+            "WHERE (? IS NULL OR g.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
+            "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
+            "ORDER BY likes_count DESC LIMIT ?";
+    private static final String RECOMMEND_FILMS_QUERY =
+            "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id " +
+                    "FROM films f " +
+                    "JOIN likes l ON f.film_id = l.film_id " +
+                    "LEFT JOIN likes l2 ON l2.film_id = f.film_id AND l2.user_id = ? " +
+                    "WHERE l.user_id = ( " +
+                    "SELECT l2.user_id FROM likes l1 JOIN Likes l2 ON l1.film_id = l2.film_id " +
+                    "WHERE l1.user_id = ? AND l2.user_id != ? GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
+                    "AND l2.film_id IS NULL";
+
+    private final NamedParameterJdbcTemplate namedJdbc;
+    private final FilmRowMapper mapper;
+
+    @Override
+    public Collection<Film> findAll() {
+        log.info("Поиск всех фильмов");
+        return namedJdbc.getJdbcOperations().query(FIND_ALL_QUERY, mapper);
+    }
+
+    @Override
+    public Film findFilm(final int id) {
+        try {
+            log.info("Поиск фильма с id: {}", id);
+            return namedJdbc.getJdbcOperations().queryForObject(FIND_BY_ID_QUERY, mapper, id);
+        } catch (DataAccessException e) {
+            throw new NotFoundException("По указанному id (" + id + ") фильм не обнаружен");
+        }
+    }
+
+    @Override
+    public Film create(final Film film) {
+        log.info("Добавляем новый фильм");
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+        try {
+            namedJdbc.getJdbcOperations().update(con -> {
+                PreparedStatement ps = con.prepareStatement(CREATE_QUERY, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, film.getName());
+                ps.setString(2, film.getDescription());
+                ps.setDate(3, Date.valueOf(film.getReleaseDate()));
+                ps.setInt(4, film.getDuration());
+                if (film.getMpa() != null && film.getMpa().getId() != null) {
+                    ps.setInt(5, film.getMpa().getId());
+                } else {
+                    ps.setNull(5, Types.INTEGER);
+                }
+                return ps;
+            }, keyHolder);
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Ошибка валидации при сохранении в БД");
+        }
+
+        Integer id = keyHolder.getKeyAs(Integer.class);
+        if (id == null) {
+            throw new DataConflictException("Не удалось сохранить данные");
+        }
+        film.setId(id);
+        log.info("Создан фильм с id: {}", id);
+        return film;
+    }
+
+    @Override
+    public Film update(final Film newFilm) {
+        log.info("Обновляем фильм");
+        try {
+            int rowsUpdated = namedJdbc.getJdbcOperations().update(UPDATE_QUERY,
+                    newFilm.getName(),
+                    newFilm.getDescription(),
+                    Date.valueOf(newFilm.getReleaseDate()),
+                    newFilm.getDuration(),
+                    newFilm.getMpa() != null ? newFilm.getMpa().getId() : null,
+                    newFilm.getId());
+            if (rowsUpdated == 0) {
+                throw new NotFoundException("Фильм с id=" + newFilm.getId() + " не найден");
+            }
+            log.info("Обновлен фильм под id: {}", newFilm.getId());
+            return findFilm(newFilm.getId());
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Ошибка валидации при сохранении в БД: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void addLike(final int id, final int userId) {
+        try {
+            namedJdbc.getJdbcOperations().update(ADD_LIKE_QUERY, id, userId);
+            log.info("Пользователь (id): {}, поставил лайк фильму (id): {}", userId, id);
+        } catch (DataAccessException e) {
+            throw new DataConflictException("Лайк уже поставлен");
+        }
+    }
+
+    @Override
+    public void removeLike(final int id, final int userId) {
+        namedJdbc.getJdbcOperations().update(REMOVE_LIKE_QUERY, id, userId);
+        log.info("Пользователь (id): {}, убрал лайк фильму (id): {}", userId, id);
+    }
+
+    public Collection<Film> recommendFilms(final long userId) {
+        log.trace("Запрос рекомендаций для пользователя с id: {}", userId);
+        try {
+            return namedJdbc.getJdbcOperations().query(RECOMMEND_FILMS_QUERY, mapper, userId, userId, userId);
+        } catch (EmptyResultDataAccessException e) {
+            log.trace("Рекомендаций для пользователя с id: {} не найдено.", userId);
+            return List.of();
+        }
+    }
+
+    public void removeFilm(int filmId) {
+        int affected = namedJdbc.getJdbcOperations().update(REMOVE_FILM_QUERY, filmId);
+        if (affected == 0) {
+            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+        }
+        log.info("Фильм с {filmId}: {} был удалён", filmId);
+    }
+
+    public Collection<Film> getCommonFilms(final int id, final int friendId) {
+        log.trace("Получение общих фильмов из базы данных.");
+        return namedJdbc.getJdbcOperations().query(GET_COMMON_FILMS, mapper, id, friendId);
+    }
+
+    public Collection<Film> getPopularFilms(final Integer count, final Integer genreId, final Integer year) {
+        return namedJdbc.getJdbcOperations().query(GET_POPULAR_FILMS, mapper, genreId, genreId, year, year, count);
+    }
+
+    public Map<Integer, Set<Integer>> findAllLikes(final List<Integer> filmIds) {
+        log.info("Поиск лайков для каждого фильма");
+
+        Map<String, Object> params = Map.of("filmIds", filmIds);
+
+        return namedJdbc.query(FIND_ALL_LIKES_BY_FILMS, params, rs -> {
+            Map<Integer, Set<Integer>> map = new HashMap<>();
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                int userId = rs.getInt("user_id");
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+            }
+            return map;
+        });
+    }
+
+    @Override
+    public Collection<Film> search(final String query, final List<String> by) {
+        boolean byTitle = by.contains("title");
+        boolean byDirector = by.contains("director");
+        if (!byTitle && !byDirector) {
+            throw new IllegalArgumentException("Параметр by должен содержать 'title' или 'director'");
+        }
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT f.*, COUNT(l.user_id) AS likes_count " +
+                        "FROM Films f " +
+                        "LEFT JOIN Likes l ON f.film_id = l.film_id "
+        );
+        if (byDirector) {
+            sql.append("LEFT JOIN Film_Directors fd ON f.film_id = fd.film_id ")
+                    .append("LEFT JOIN Directors d ON d.director_id = fd.director_id ");
+        }
+        sql.append("WHERE ");
+
+        List<Object> params = new ArrayList<>();
+        String p = "%" + query.toLowerCase() + "%";
+        List<String> cond = new ArrayList<>();
+        if (byTitle) {
+            cond.add("LOWER(f.name) LIKE ?");
+            params.add(p);
+        }
+        if (byDirector) {
+            cond.add("LOWER(d.name) LIKE ?");
+            params.add(p);
+        }
+        sql.append(String.join(" OR ", cond));
+        sql.append(" GROUP BY f.film_id ORDER BY likes_count DESC");
+
+        return namedJdbc.getJdbcOperations().query(sql.toString(), mapper, params.toArray());
+    }
+}
